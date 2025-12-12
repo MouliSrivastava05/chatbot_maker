@@ -1,7 +1,10 @@
 [
-
   {
     "email": "pushpu@gmail.com",
+    "password": "123456"
+  },
+  {
+    "email": "m2@gmail.com",
     "password": "123456"
   }
 ]

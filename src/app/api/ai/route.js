@@ -20,8 +20,12 @@ export async function POST(req) {
 
     // Use Groq API (fast, free tier available)
     const messages = [];
-    if (context) {
-      messages.push({ role: "system", content: context });
+    if (context && context.trim()) {
+      // Add system message with context - this instructs the AI to only respond based on context
+      messages.push({ 
+        role: "system", 
+        content: `${context}\n\nIMPORTANT: You must ONLY answer questions based on the context provided above. If a question is outside this context, politely decline and explain that you can only help with topics related to your defined role/context.`
+      });
     }
     messages.push({ role: "user", content: text });
 

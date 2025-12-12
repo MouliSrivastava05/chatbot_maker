@@ -57,22 +57,31 @@ export const getChatbotByName = async ({ token, name }) => {
         })
         
         if (!response.ok) {
-            let errorMessage = "Error getting chatbot by name";
+            let errorMessage = "Chatbot not found";
             try {
                 const errorData = await response.json();
                 errorMessage = errorData.err || errorMessage;
             } catch (parseError) {
                 console.warn('Failed to parse error response:', parseError);
             }
-            throw new Error(errorMessage);
+            const error = new Error(errorMessage);
+            error.status = response.status;
+            throw error;
         }
         
         const data = await response.json();
+        
+        // Verify data is valid
+        if (!data || !data.name) {
+            throw new Error('Chatbot not found');
+        }
+        
         return data;
     } catch (error) {
-        if (error instanceof SyntaxError) {
-            console.warn('JSON parsing error in getChatbotByName:', error);
-            throw new Error('Chatbot not found or invalid response');
+        // Don't mask the original error, just re-throw it
+        if (error.message && !error.status) {
+            // If it's a network error or other issue, preserve it
+            console.error('Error fetching chatbot:', error);
         }
         throw error;
     }
@@ -106,6 +115,35 @@ export const getChatbotsByCreator = async ({ token }) => {
             console.warn('JSON parsing error in getChatbotsByCreator:', error);
             return []; // Return empty array instead of throwing
         }
+        throw error;
+    }
+}
+
+export const deleteChatbot = async ({ token, name }) => {
+    try {
+        const response = await fetch("/api/chatbot/delete", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ name })
+        });
+        
+        if (!response.ok) {
+            let errorMessage = "Error deleting chatbot";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.err || errorMessage;
+            } catch (parseError) {
+                console.warn('Failed to parse error response:', parseError);
+            }
+            throw new Error(errorMessage);
+        }
+        
+        return response.json();
+    } catch (error) {
+        console.error('Error deleting chatbot:', error);
         throw error;
     }
 }

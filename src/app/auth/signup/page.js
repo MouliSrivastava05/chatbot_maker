@@ -38,14 +38,23 @@ const Signup = () => {
       return;
     }
 
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       // First sign up the user
-      await signup({
+      const signupResponse = await signup({
         email: formData.email,
         password: formData.password,
       });
+
+      if (!signupResponse || signupResponse.message !== "User created successfully") {
+        throw new Error(signupResponse?.message || 'Signup failed. Please try again.');
+      }
 
       // Then automatically log them in
       const loginResponse = await login({
@@ -53,14 +62,23 @@ const Signup = () => {
         password: formData.password,
       });
 
+      if (!loginResponse || !loginResponse.token) {
+        throw new Error('Account created but login failed. Please try logging in manually.');
+      }
+
       // Store the token
       localStorage.setItem("token", loginResponse.token);
       setIsLoggedIn(true);
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect to home page
+      router.push('/');
     } catch (err) {
-      setError(err.message || 'Signup failed');
+      console.error('Signup error:', err);
+      if (err.message?.includes('already exists') || err.data?.message?.includes('already exists')) {
+        setError('An account with this email already exists. Please sign in instead.');
+      } else {
+        setError(err.message || err.data?.message || 'Signup failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -91,8 +109,8 @@ const Signup = () => {
         localStorage.setItem("token", reg.token);
         setIsLoggedIn(true);
         
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Redirect to home page
+        router.push('/');
       } else {
         throw new Error('Failed to create user session');
       }
@@ -187,22 +205,23 @@ const Signup = () => {
         </form>
 
         <div className="auth-footer">
-          <p>
+          <div className="auth-divider">
+            <span>or</span>
+          </div>
+          <button 
+            type="button" 
+            className="auth-button google-button" 
+            onClick={handleGoogleSignIn}
+            disabled={isGoogleLoading || isLoading}
+          >
+            {isGoogleLoading ? 'Signing up with Google...' : 'Continue with Google'}
+          </button>
+          <p style={{ marginTop: '1.5rem' }}>
             Already have an account?{' '}
             <Link href="/auth/Login" className="auth-link">
               Sign in
             </Link>
           </p>
-          <div style={{ marginTop: '12px' }}>
-            <button 
-              type="button" 
-              className="auth-button" 
-              onClick={handleGoogleSignIn}
-              disabled={isGoogleLoading || isLoading}
-            >
-              {isGoogleLoading ? 'Signing up with Google...' : 'Continue with Google'}
-            </button>
-          </div>
         </div>
       </div>
     </div>

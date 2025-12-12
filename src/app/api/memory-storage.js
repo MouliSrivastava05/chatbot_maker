@@ -1,5 +1,3 @@
-// In-memory storage for deployment environments where file system is read-only
-// This is a temporary solution until you migrate to a proper database
 
 // Try to load from process.env for persistence across deployments
 const loadPersistentData = () => {

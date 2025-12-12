@@ -47,7 +47,7 @@ const Navbar = () => {
   return (
     <div className='Navbar'>
       <div className="nav-brand">
-        <h1>ChatBot Maker</h1>
+        <h1>NexCraft</h1>
       </div>
       <div className="nav-links">
         <Link href="/" className="nav-link">Home</Link>

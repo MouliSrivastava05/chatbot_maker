@@ -24,7 +24,9 @@ export default function Page() {
     getChatbotByName({ token, name: ChatBotName })
       .then((data) => {
         if (data?.name) {
-          setBotDetails({ name: data.name, context: data.context || "" })
+          const context = data.context || "";
+          console.log('Loaded chatbot context:', context ? `${context.substring(0, 100)}...` : 'No context provided');
+          setBotDetails({ name: data.name, context: context })
           storageKeyRef.current = `chat_history:${data.name}`
           try {
             const saved = localStorage.getItem(storageKeyRef.current)
@@ -53,7 +55,14 @@ export default function Page() {
       })
       .catch((err) => {
         console.error("Failed to load chatbot:", err);
-        // Set fallback data so user can still use the chat
+        // Show user-friendly error message
+        if (err.message && err.message.includes("not found")) {
+          setChatHistory([{
+            role: "Bot",
+            text: `Sorry, the chatbot "${ChatBotName}" was not found. Please check the chatbot name or create it first.`
+          }])
+        }
+        // Set fallback data with empty context
         setBotDetails({ name: ChatBotName, context: "" })
       })
   }, [ChatBotName])
@@ -86,9 +95,13 @@ export default function Page() {
       if (token && botDetails.name) {
         addMessageApi({ token, chatbotName: botDetails.name, role: "user", text: userMessage }).catch(() => {})
       }
+      // Ensure context is passed correctly
+      const contextToUse = botDetails.context || "";
+      console.log('Sending message with context:', contextToUse ? `${contextToUse.substring(0, 50)}...` : 'No context');
+      
       const response = await askGemini({
         text: userMessage,
-        context: botDetails.context,
+        context: contextToUse,
       })
       const data = await response.json()
       const botMessage = data?.response?.candidates?.[0]?.content?.parts?.[0]?.text || ""

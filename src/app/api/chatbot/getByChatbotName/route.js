@@ -24,6 +24,13 @@ export async function GET(req) {
 
     const data = await getChatbotByName(name);
 
+    if (!data || !data.name) {
+      return new Response(JSON.stringify({ err: "Chatbot not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: { "Content-Type": "application/json" },

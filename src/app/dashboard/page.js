@@ -3,7 +3,7 @@ import React, { useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AuthContext } from '@/context/auth'
 import './dashboard.css'
-import { createChatbot, getChatbotsByCreator } from '@/services/chatbot'
+import { createChatbot, getChatbotsByCreator, deleteChatbot } from '@/services/chatbot'
 import { getToken } from '@/helpers/auth'
 const Dashboard = () => {
     const router = useRouter()
@@ -150,21 +150,34 @@ const Dashboard = () => {
                 return;
             }
 
-            // Remove from local state
-            setChatbots(prev => prev.filter(c => c.id !== chatbot.id && c.name !== chatbot.name));
+            // Delete from server first
+            await deleteChatbot({ token, name: chatbot.name });
+
+            // Remove from local state - keep items that don't match by name (name is the unique identifier)
+            setChatbots(prev => prev.filter(c => c.name !== chatbot.name));
             
             // Remove from localStorage
             const localChatbots = localStorage.getItem('user_chatbots');
             if (localChatbots) {
                 const parsed = JSON.parse(localChatbots);
-                const filtered = parsed.filter(c => c.id !== chatbot.id && c.name !== chatbot.name);
+                const filtered = parsed.filter(c => c.name !== chatbot.name);
                 localStorage.setItem('user_chatbots', JSON.stringify(filtered));
+            }
+            
+            // Reload chatbots from server to ensure sync
+            try {
+                const serverChatbots = await getChatbotsByCreator({ token });
+                if (Array.isArray(serverChatbots)) {
+                    setChatbots(serverChatbots);
+                }
+            } catch (error) {
+                console.warn('Failed to reload chatbots after delete:', error);
             }
 
             alert('Chatbot deleted successfully!');
         } catch (error) {
             console.error('Failed to delete chatbot:', error);
-            alert('Failed to delete chatbot. Please try again.');
+            alert(error.message || 'Failed to delete chatbot. Please try again.');
         }
     }
     if (!isLoggedIn) {
