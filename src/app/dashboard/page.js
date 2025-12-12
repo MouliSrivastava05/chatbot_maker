@@ -192,13 +192,13 @@ const Dashboard = () => {
                                 value={formData.name}
                                 onChange={handleChange}
                             />
-                            <input
-                                type="text"
+                            <textarea
                                 name="context"
-                                placeholder="Enter chatbot context"
+                                placeholder="Enter chatbot context and instructions..."
                                 className="chatbotContext"
                                 value={formData.context}
                                 onChange={handleChange}
+                                rows={4}
                             />
                             <button 
                                 onClick={handleCreateChatbot} 
