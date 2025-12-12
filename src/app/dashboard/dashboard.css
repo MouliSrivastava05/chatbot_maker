@@ -1,0 +1,299 @@
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Base setup */
+body {
+    background-color: #000;
+    color: #00ff88;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Glowing text effect */
+ 
+  
+  /* Dashboard container */
+  .dashboard {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: calc(100vh - 70px);
+    background: var(--background);
+    color: var(--foreground);
+    transition: background-color 0.3s, color 0.3s;
+    opacity: 0;
+    animation: fadeInUp 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s forwards;
+  }
+  
+  /* Header */
+  .dashboardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--primary);
+    opacity: 0;
+    animation: fadeInUp 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s forwards;
+  }
+  
+  .dashboardHeader h1 {
+    color: var(--foreground);
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  
+  .dashboardContent {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  /* Logout button */
+  .logoutButton {
+    background: none;
+    border: 2px solid #00ff88;
+    color: #00ff88;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+  }
+  
+  .logoutButton:hover {
+    background: #00ff88;
+    color: #000;
+  }
+  
+  /* Create section */
+  .createChatbotSection {
+    background: var(--card);
+    color: var(--card-foreground);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+    opacity: 0;
+    animation: scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.3s forwards;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  }
+  
+  .createChatbotSection h2 {
+    color: var(--foreground);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  
+  .inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .chatbotName,
+  .chatbotContext {
+    padding: 0.75rem;
+    border: 2px solid var(--input);
+    border-radius: 6px;
+    font-size: 1rem;
+    background: var(--input);
+    color: var(--foreground);
+    transition: border-color 0.3s, background 0.3s, color 0.3s;
+  }
+  
+  .chatbotName:focus,
+  .chatbotContext:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px var(--ring);
+  }
+  
+  /* Create button */
+  .createChatbotButton {
+    padding: 0.75rem;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s, color 0.3s;
+  }
+  
+  .createChatbotButton:hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+  
+  /* Chatbots list */
+  .chatbotsList {
+    background: var(--card);
+    color: var(--card-foreground);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+    opacity: 0;
+    animation: scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.4s forwards;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  }
+  
+  .chatbotsList h2 {
+    color: var(--foreground);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  
+  .noChatbots {
+    color: var(--muted-foreground);
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  /* Grid layout */
+  .chatbotGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  /* Chatbot card */
+  .chatbotCard {
+    background: var(--card);
+    color: var(--card-foreground);
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+    transition: transform 0.3s, background 0.3s, color 0.3s, border-color 0.3s;
+    opacity: 0;
+    animation: scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  }
+  
+  .chatbotCard:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-color: var(--primary);
+  }
+  
+  .chatbotCard h3 {
+    color: var(--foreground);
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  
+  .chatbotCard .context {
+    color: var(--muted-foreground);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+  }
+  
+  .chatbotCard .createdAt {
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Chatbot Actions */
+  .chatbotActions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  /* Action Buttons */
+  .openChatButton, .editChatbotButton, .deleteChatbotButton {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+  }
+
+  .openChatButton {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  
+  .openChatButton:hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  .editChatbotButton {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+  
+  .editChatbotButton:hover {
+    background: var(--secondary-hover, #e5e7eb);
+  }
+
+  .deleteChatbotButton {
+    background: #ef4444;
+    color: white;
+  }
+  
+  .deleteChatbotButton:hover {
+    background: #dc2626;
+  }
+  
+  /* Not Logged In */
+  .notLoggedIn {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--card);
+    color: var(--card-foreground);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+    margin: 2rem auto;
+    max-width: 600px;
+    opacity: 0;
+    animation: fadeInUp 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s forwards;
+  }
+  
+  .notLoggedIn h1 {
+    color: var(--foreground);
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+  
+  .notLoggedIn p {
+    color: var(--muted-foreground);
+    margin-bottom: 2rem;
+  }
+  
+  @media (max-width: 768px) {
+    .dashboard {
+      padding: 1rem;
+    }
+  
+    .dashboardHeader {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+  
+    .chatbotGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
