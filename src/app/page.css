@@ -183,59 +183,47 @@
 }
 
 .cta-section p {
-  font-size: 1.25rem;
+  font-size: 1rem;
   margin-bottom: 2rem;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 /* Button styles */
 .primary-button {
   display: inline-block;
-  padding: 1rem 2rem;
+  padding: 0.875rem 1.75rem;
   background-color: var(--primary);
   color: var(--primary-foreground);
   border: none;
-  border-radius: 0.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  transition: background-color 0.2s ease;
 }
 
 .primary-button:hover {
   background-color: var(--accent);
-  transform: translateY(-2px);
-}
-
-.primary-button:active {
-  transform: translateY(0);
 }
 
 .secondary-button {
   display: inline-block;
-  padding: 1rem 2rem;
+  padding: 0.875rem 1.75rem;
   background-color: transparent;
   color: var(--primary);
   border: 2px solid var(--primary);
-  border-radius: 0.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .secondary-button:hover {
   background-color: var(--primary);
   color: var(--primary-foreground);
-  transform: translateY(-2px);
-}
-
-.secondary-button:active {
-  transform: translateY(0);
 }
 
 /* Responsive styles */

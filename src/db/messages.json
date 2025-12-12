@@ -1,5 +1,4 @@
 [
-
   {
     "id": 1765539801325,
     "chatbotName": "intern",
@@ -159,5 +158,21 @@
     "role": "bot",
     "text": "According to the given information, the standard working hours are 9:00 AM to 6:00 PM, which is a total of 9 hours. However, employees can take a 1-hour lunch break, so the actual working hours would be 8 hours (9 hours - 1 hour lunch break).",
     "createdAt": "2025-12-12T20:07:12.320Z"
+  },
+  {
+    "id": 1765571920064,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "code of conduct summary ",
+    "createdAt": "2025-12-12T20:38:40.064Z"
+  },
+  {
+    "id": 1765571920458,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "bot",
+    "text": "**Code of Conduct Summary:**\n\n1. **Respectful Work Environment**: Maintain a respectful and inclusive work environment.\n2. **Confidentiality**: Do not share confidential company information outside the organization.\n3. **No Harassment**: Harassment of any kind will lead to disciplinary action.\n\nOverall, the code of conduct aims to promote a positive and professional work environment at BrightWave Technologies.",
+    "createdAt": "2025-12-12T20:38:40.458Z"
   }
 ]
