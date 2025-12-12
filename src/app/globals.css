@@ -21,21 +21,26 @@
 }
 
 [data-theme='dark'] {
-  --background: #0f1419;
-  --foreground: #e2e8f0;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #e2e8f0;
-  --accent: #60a5fa;
-  --accent-foreground: #0f172a;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --card: #1e293b;
-  --card-foreground: #e2e8f0;
-  --border: #334155;
-  --input: #1e293b;
-  --ring: #3b82f6;
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --primary: #f5e6d3;
+  --primary-foreground: #000000;
+  --secondary: #151515;
+  --secondary-foreground: #ffffff;
+  --accent: #f5e6d3;
+  --accent-foreground: #000000;
+  --muted: #151515;
+  --muted-foreground: #a3a3a3;
+  --card: #111111;
+  --card-foreground: #ffffff;
+  --border: #2a2a2a;
+  --input: #151515;
+  --ring: #f5e6d3;
+  --glow: rgba(245, 230, 211, 0.2);
+  --glow-strong: rgba(245, 230, 211, 0.3);
+  --gradient-start: rgba(255, 235, 59, 0.1);
+  --gradient-middle: rgba(255, 255, 255, 0.05);
+  --gradient-end: rgba(135, 206, 250, 0.1);
 }
 
 /* Base styles */
@@ -45,21 +50,49 @@ html {
 }
 
 body {
-  background-color: var(--background);
+  background: var(--background);
   color: var(--foreground);
   min-height: 100vh;
   margin: 0;
   padding: 0;
   transition: background-color 0.3s ease, color 0.3s ease;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  right: -10%;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, var(--gradient-start) 0%, var(--gradient-middle) 30%, var(--gradient-end) 60%, transparent 100%);
+  border-radius: 50%;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+  animation: pulse-glow 8s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.1); opacity: 0.6; }
 }
 
 /* Main layout styles */
 main {
-  background-color: var(--background);
+  background-color: transparent;
   color: var(--foreground);
   min-height: calc(100vh - 64px); /* Subtract navbar height */
   padding: 2rem;
   transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
 /* Navbar styles */
@@ -213,6 +246,30 @@ textarea {
   transition: background-color 0.2s ease, 
               color 0.2s ease, 
               border-color 0.2s ease;
+}
+
+/* Scrollbar styling for dark mode */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) var(--background);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }
 
 /* Responsive styles */

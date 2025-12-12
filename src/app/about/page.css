@@ -10,27 +10,41 @@
 /* Hero Section */
 .about-hero {
   text-align: center;
-  padding: 4rem 2rem;
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  transition: background-color 0.3s ease;
+  padding: 6rem 2rem;
+  background: transparent;
+  color: var(--foreground);
+  border-bottom: none;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
 .about-hero-content {
   max-width: 800px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .about-hero h1 {
-  font-size: 2.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--primary-foreground);
+  font-size: 4rem;
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  font-family: Georgia, 'Times New Roman', serif;
+  position: relative;
+  z-index: 1;
+}
+
+.about-hero-content {
+  position: relative;
+  z-index: 1;
 }
 
 .about-hero p {
   font-size: 1.1rem;
-  color: var(--primary-foreground);
+  color: var(--primary);
   opacity: 0.95;
 }
 
@@ -85,23 +99,42 @@
 }
 
 .about-feature-card {
-  background-color: var(--card);
+  background: var(--card);
   color: var(--card-foreground);
-  padding: 1.5rem;
-  border-radius: 8px;
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
   border: 1px solid var(--border);
   text-align: center;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .about-feature-card:hover {
   border-color: var(--primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(245, 230, 211, 0.15);
 }
 
 .about-feature-icon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.about-feature-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.about-feature-card:hover .about-feature-icon {
+  transform: scale(1.05);
+  color: var(--primary);
 }
 
 .about-feature-card h3 {
@@ -121,8 +154,10 @@
 .about-cta {
   padding: 4rem 2rem;
   text-align: center;
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  background-color: var(--secondary);
+  color: var(--foreground);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   transition: background-color 0.3s ease;
 }
 
@@ -134,12 +169,11 @@
 
 .about-cta p {
   font-size: 1rem;
-  color: var(--primary-foreground);
+  color: var(--muted-foreground);
   margin-bottom: 2rem;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-  opacity: 0.95;
 }
 
 .about-cta-buttons {
@@ -153,38 +187,44 @@
 .about-primary-button {
   display: inline-block;
   padding: 0.875rem 1.75rem;
-  background-color: var(--primary-foreground);
-  color: var(--primary);
-  border: none;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid var(--primary);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
   text-decoration: none;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .about-primary-button:hover {
-  opacity: 0.9;
+  background: transparent;
+  color: var(--primary);
 }
 
 .about-secondary-button {
   display: inline-block;
   padding: 0.875rem 1.75rem;
   background-color: transparent;
-  color: var(--primary-foreground);
-  border: 2px solid var(--primary-foreground);
+  color: var(--foreground);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .about-secondary-button:hover {
-  background-color: var(--primary-foreground);
-  color: var(--primary);
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
 }
 
 /* Responsive Design */

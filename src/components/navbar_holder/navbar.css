@@ -4,22 +4,24 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background-color: var(--background);
+  padding: 1.25rem 2rem;
+  background-color: transparent;
   color: var(--foreground);
-  border-bottom: 1px solid var(--border);
+  border-bottom: none;
   position: sticky;
   top: 0;
   z-index: 1000;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .nav-brand h1 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: var(--foreground);
-  font-weight: 600;
+  font-weight: 500;
   transition: color 0.3s ease;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .nav-links {
@@ -31,64 +33,64 @@
 .nav-link {
   text-decoration: none;
   color: var(--foreground);
-  font-weight: 500;
+  font-weight: 400;
   transition: color 0.3s ease;
-  font-size: 1rem;
+  font-size: 0.9375rem;
+  letter-spacing: 0;
+  text-transform: none;
+  position: relative;
 }
 
 .nav-link:hover {
-  color: var(--primary);
+  color: var(--muted-foreground);
 }
 
 .nav-button {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
   font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
   text-decoration: none;
   transition: all 0.3s ease;
   cursor: pointer;
-  font-size: 1rem;
-  border: 2px solid transparent;
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-}
-
-.nav-button:hover {
-  background-color: var(--accent);
-  border-color: var(--accent);
+  font-size: 0.9375rem;
+  border: 1px solid transparent;
 }
 
 .nav-button.login {
-  background-color: transparent;
-  color: var(--primary);
-  border: 2px solid var(--primary);
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
 }
 
 .nav-button.login:hover {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
 }
 
 .nav-button.signup {
-  background-color: var(--primary);
+  background: var(--primary);
   color: var(--primary-foreground);
-  border: 2px solid var(--primary);
+  border: 1px solid var(--primary);
 }
 
 .nav-button.signup:hover {
-  background-color: var(--accent);
-  border-color: var(--accent);
+  background: transparent;
+  color: var(--primary);
 }
 
 .nav-button.logout {
-  background-color: transparent;
-  color: var(--accent);
-  border: 2px solid var(--accent);
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
 }
 
 .nav-button.logout:hover {
-  background-color: var(--accent);
-  color: var(--accent-foreground);
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
 }
 
 @media (max-width: 768px) {

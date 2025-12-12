@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { useContext } from 'react';
 import { AuthContext } from '@/context/auth';
 import './page.css';
+import RocketIcon from '@/components/icons/RocketIcon';
+import RobotIcon from '@/components/icons/RobotIcon';
+import LightbulbIcon from '@/components/icons/LightbulbIcon';
+import LockIcon from '@/components/icons/LockIcon';
 
 export default function Home() {
   const { isLoggedIn } = useContext(AuthContext);
@@ -37,22 +41,30 @@ export default function Home() {
         <h2>Why Choose Our Platform?</h2>
         <div className="features-grid">
           <div className="feature-card">
-            <div className="feature-icon">🚀</div>
+            <div className="feature-icon">
+              <RocketIcon />
+            </div>
             <h3>Quick Setup</h3>
             <p>Create your AI assistant in minutes with our simple interface</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">🤖</div>
+            <div className="feature-icon">
+              <RobotIcon />
+            </div>
             <h3>Customizable</h3>
             <p>Tailor your chatbot to your specific needs and use cases</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">💡</div>
+            <div className="feature-icon">
+              <LightbulbIcon />
+            </div>
             <h3>Smart Responses</h3>
             <p>Powered by advanced AI for intelligent and contextual responses</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">🔒</div>
+            <div className="feature-icon">
+              <LockIcon />
+            </div>
             <h3>Secure</h3>
             <p>Your data is protected with enterprise-grade security</p>
           </div>

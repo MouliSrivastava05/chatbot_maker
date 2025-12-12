@@ -1,44 +1,58 @@
-/* Minimal animations */
+/* Simple animations */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-/* Base container with animation */
+/* Base container */
 .home-container {
   min-height: 100vh;
-  background-color: var(--background);
+  background: var(--background);
   color: var(--foreground);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Hero Section */
 .hero-section {
-  padding: 4rem 2rem;
+  padding: 6rem 2rem 8rem;
   text-align: center;
-  background-color: var(--background);
+  background: transparent;
   transition: background-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.5; }
 }
 
 .hero-content {
   max-width: 800px;
   margin: 0 auto;
+  animation: fadeIn 0.6s ease-out;
 }
 
 .hero-content h1 {
-  font-size: 2.5rem;
+  font-size: 4rem;
   color: var(--foreground);
-  margin-bottom: 1rem;
-  line-height: 1.3;
-  font-weight: 600;
+  margin-bottom: 2rem;
+  line-height: 1.1;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  font-family: Georgia, 'Times New Roman', serif;
   transition: color 0.3s ease;
 }
 
 .hero-content p {
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   color: var(--muted-foreground);
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
   line-height: 1.6;
+  font-weight: 400;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
   transition: color 0.3s ease;
 }
 
@@ -51,17 +65,19 @@
 
 /* Features Section */
 .features-section {
-  padding: 4rem 2rem;
-  background-color: var(--background);
+  padding: 6rem 2rem;
+  background: transparent;
   transition: background-color 0.3s ease;
+  position: relative;
 }
 
 .features-section h2 {
   text-align: center;
-  font-size: 2rem;
+  font-size: 2.25rem;
   color: var(--foreground);
-  margin-bottom: 2.5rem;
-  font-weight: 600;
+  margin-bottom: 4rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
   transition: color 0.3s ease;
 }
 
@@ -74,50 +90,79 @@
 }
 
 .feature-card {
-  padding: 1.5rem;
+  padding: 2.5rem 2rem;
   text-align: center;
-  background-color: var(--card);
+  background: var(--card);
   color: var(--card-foreground);
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .feature-card:hover {
   border-color: var(--primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(245, 230, 211, 0.15);
 }
 
 .feature-icon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.feature-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.05);
+  color: var(--primary);
 }
 
 .feature-card h3 {
   color: var(--foreground);
   margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
   transition: color 0.3s ease;
 }
 
 .feature-card p {
   color: var(--muted-foreground);
-  line-height: 1.6;
+  line-height: 1.7;
+  font-size: 0.9375rem;
+  font-weight: 300;
   transition: color 0.3s ease;
 }
 
 /* How It Works Section */
 .how-it-works {
-  padding: 4rem 2rem;
-  background-color: var(--secondary);
+  padding: 6rem 2rem;
+  background: transparent;
   transition: background-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .how-it-works h2 {
   text-align: center;
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: var(--foreground);
-  margin-bottom: 2.5rem;
-  font-weight: 600;
+  margin-bottom: 4rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  font-family: Georgia, 'Times New Roman', serif;
   transition: color 0.3s ease;
 }
 
@@ -138,92 +183,117 @@
 }
 
 .step-number {
-  width: 36px;
-  height: 36px;
-  background-color: var(--primary);
+  width: 60px;
+  height: 60px;
+  background: var(--primary);
   color: var(--primary-foreground);
-  border-radius: 50%;
+  border-radius: 12px;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
+  margin: 0 auto 2rem;
   font-weight: 600;
-  font-size: 0.9rem;
-  transition: background-color 0.2s ease;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .step:hover .step-number {
-  background-color: var(--accent);
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(245, 230, 211, 0.2);
 }
 
 .step h3 {
   color: var(--foreground);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
   transition: color 0.3s ease;
 }
 
 .step p {
   color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  font-weight: 300;
+  line-height: 1.7;
   transition: color 0.3s ease;
 }
 
 /* CTA Section */
 .cta-section {
-  padding: 4rem 2rem;
+  padding: 6rem 2rem;
   text-align: center;
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background: transparent;
+  color: var(--foreground);
+  border-top: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .cta-section h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
 .cta-section p {
-  font-size: 1rem;
-  margin-bottom: 2rem;
-  opacity: 0.95;
+  font-size: 1.125rem;
+  margin-bottom: 3rem;
+  color: var(--muted-foreground);
+  font-weight: 300;
+  line-height: 1.7;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Button styles */
 .primary-button {
   display: inline-block;
   padding: 0.875rem 1.75rem;
-  background-color: var(--primary);
+  background: var(--primary);
   color: var(--primary-foreground);
-  border: none;
+  border: 1px solid var(--primary);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .primary-button:hover {
-  background-color: var(--accent);
+  background: transparent;
+  color: var(--primary);
 }
 
 .secondary-button {
   display: inline-block;
   padding: 0.875rem 1.75rem;
   background-color: transparent;
-  color: var(--primary);
-  border: 2px solid var(--primary);
+  color: var(--foreground);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .secondary-button:hover {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
 }
 
 /* Responsive styles */

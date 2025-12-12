@@ -4,9 +4,11 @@
   max-width: 1200px;
   margin: 0 auto;
   min-height: calc(100vh - 70px);
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
   transition: background-color 0.3s, color 0.3s;
+  position: relative;
+  z-index: 1;
 }
 
 /* Header */
@@ -21,9 +23,10 @@
   
 .dashboardHeader h1 {
   color: var(--foreground);
-  font-size: 1.75rem;
+  font-size: 2rem;
   margin: 0;
-  font-weight: 600;
+  font-weight: 300;
+  letter-spacing: -0.02em;
 }
   
   .dashboardContent {
@@ -36,17 +39,20 @@
 .createChatbotSection {
   background: var(--card);
   color: var(--card-foreground);
-  padding: 1.5rem;
-  border-radius: 8px;
+  padding: 3rem;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
   
 .createChatbotSection h2 {
   color: var(--foreground);
-  margin-bottom: 1.25rem;
-  font-size: 1.25rem;
-  font-weight: 600;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: -0.01em;
 }
   
   .inputGroup {
@@ -57,19 +63,28 @@
   
 .chatbotName,
 .chatbotContext {
-  padding: 0.75rem;
+  padding: 1rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 1rem;
+  border-radius: 0;
+  font-size: 0.9375rem;
   background: var(--background);
   color: var(--foreground);
-  transition: border-color 0.2s;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.chatbotName::placeholder,
+.chatbotContext::placeholder {
+  color: var(--muted-foreground);
+  font-weight: 300;
 }
 
 .chatbotName:focus,
 .chatbotContext:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(245, 230, 211, 0.1);
+  background: var(--background);
 }
 
 .chatbotContext {
@@ -79,19 +94,22 @@
   
 /* Create button */
 .createChatbotButton {
-  padding: 0.75rem;
+  padding: 0.875rem 1.75rem;
   background: var(--primary);
   color: var(--primary-foreground);
-  border: none;
-  border-radius: 6px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
   font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
+  font-size: 0.9375rem;
+  transition: all 0.3s ease;
 }
 
 .createChatbotButton:hover:not(:disabled) {
-  background: var(--accent);
+  background: transparent;
+  color: var(--primary);
 }
 
 .createChatbotButton:disabled {
@@ -104,16 +122,18 @@
   background: var(--card);
   color: var(--card-foreground);
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .chatbotsList h2 {
   color: var(--foreground);
-  margin-bottom: 1.25rem;
-  font-size: 1.25rem;
-  font-weight: 600;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: -0.01em;
 }
   
 .noChatbots {
@@ -133,22 +153,25 @@
 .chatbotCard {
   background: var(--background);
   color: var(--foreground);
-  padding: 1.25rem;
-  border-radius: 8px;
+  padding: 2rem;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .chatbotCard:hover {
   border-color: var(--primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(245, 230, 211, 0.15);
 }
   
 .chatbotCard h3 {
   color: var(--foreground);
-  margin-bottom: 0.75rem;
-  font-size: 1.1rem;
-  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
 .chatbotCard .context {
@@ -180,41 +203,57 @@
 .openChatButton, 
 .editChatbotButton, 
 .deleteChatbotButton {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
+  padding: 0.625rem 1rem;
+  border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
   font-size: 0.875rem;
-  transition: background-color 0.2s, opacity 0.2s;
+  transition: all 0.3s ease;
+  width: 100%;
 }
 
 .openChatButton {
   background: var(--primary);
   color: var(--primary-foreground);
+  border: 1px solid var(--primary);
 }
 
 .openChatButton:hover {
-  background: var(--accent);
+  background: transparent;
+  color: var(--primary);
 }
 
 .editChatbotButton {
-  background: var(--secondary);
-  color: var(--secondary-foreground);
+  background: transparent;
+  color: var(--foreground);
   border: 1px solid var(--border);
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
 }
 
 .editChatbotButton:hover {
-  opacity: 0.9;
+  border-color: var(--primary);
 }
 
 .deleteChatbotButton {
-  background: #ef4444;
-  color: white;
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
 }
 
 .deleteChatbotButton:hover {
-  background: #dc2626;
+  background: #ef4444;
+  color: white;
 }
   
 /* Not Logged In */
