@@ -1,0 +1,163 @@
+[
+
+  {
+    "id": 1765539801325,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "what are the working errors",
+    "createdAt": "2025-12-12T11:43:21.325Z"
+  },
+  {
+    "id": 1765539836317,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "remote work guidelines",
+    "createdAt": "2025-12-12T11:43:56.317Z"
+  },
+  {
+    "id": 1765539974131,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "remote work guidelines",
+    "createdAt": "2025-12-12T11:46:14.131Z"
+  },
+  {
+    "id": 1765546168844,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "remote work guidelines",
+    "createdAt": "2025-12-12T13:29:28.844Z"
+  },
+  {
+    "id": 1765564926963,
+    "chatbotName": "test-chatbot-1765564925180",
+    "userEmail": "test_1765564925180@test.com",
+    "role": "user",
+    "text": "Hello, this is a test message",
+    "createdAt": "2025-12-12T18:42:06.963Z"
+  },
+  {
+    "id": 1765564954934,
+    "chatbotName": "test-chatbot-1765564954689",
+    "userEmail": "test_1765564954689@test.com",
+    "role": "user",
+    "text": "Hello, this is a test message",
+    "createdAt": "2025-12-12T18:42:34.934Z"
+  },
+  {
+    "id": 1765564964291,
+    "chatbotName": "test-chatbot-1765564964083",
+    "userEmail": "test_1765564964083@test.com",
+    "role": "user",
+    "text": "Hello, this is a test message",
+    "createdAt": "2025-12-12T18:42:44.291Z"
+  },
+  {
+    "id": 1765564971273,
+    "chatbotName": "test-chatbot-1765564971065",
+    "userEmail": "test_1765564971065@test.com",
+    "role": "user",
+    "text": "Hello, this is a test message",
+    "createdAt": "2025-12-12T18:42:51.273Z"
+  },
+  {
+    "id": 1765565608778,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "remote work guidelines",
+    "createdAt": "2025-12-12T18:53:28.778Z"
+  },
+  {
+    "id": 1765566065335,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "remote work guidelines",
+    "createdAt": "2025-12-12T19:01:05.335Z"
+  },
+  {
+    "id": 1765568598720,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "remote work guidelines",
+    "createdAt": "2025-12-12T19:43:18.720Z"
+  },
+  {
+    "id": 1765568599438,
+    "chatbotName": "intern",
+    "userEmail": "pushpu@gmail.com",
+    "role": "bot",
+    "text": "According to the company guidelines, here are the Remote Work Guidelines for BrightWave Technologies:\n\n**Remote Work Guidelines:**\n\n1. **Allowed days:** Remote work is allowed up to **2 days per week**.\n2. **Availability:** Employees must be **reachable during working hours on Slack**.\n3. **Daily standups:** Daily standups must be attended over **video call**.\n\nThese guidelines aim to ensure that employees are accessible and engaged with the team while working remotely, while also maintaining the flexibility and work-life balance that comes with remote work.",
+    "createdAt": "2025-12-12T19:43:19.438Z"
+  },
+  {
+    "id": 1765568657977,
+    "chatbotName": "test",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "what are the working hours",
+    "createdAt": "2025-12-12T19:44:17.977Z"
+  },
+  {
+    "id": 1765568658334,
+    "chatbotName": "test",
+    "userEmail": "pushpu@gmail.com",
+    "role": "bot",
+    "text": "The standard working hours are:\n\n9:00 AM to 6:00 PM, Monday to Friday.\n\nAdditionally, employees can take a 1-hour lunch break anytime between 12:00 PM and 3:00 PM.",
+    "createdAt": "2025-12-12T19:44:18.334Z"
+  },
+  {
+    "id": 1765568757645,
+    "chatbotName": "test",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "company name",
+    "createdAt": "2025-12-12T19:45:57.645Z"
+  },
+  {
+    "id": 1765568758075,
+    "chatbotName": "test",
+    "userEmail": "pushpu@gmail.com",
+    "role": "bot",
+    "text": "The company name is **Bright Technologies**, and it operates in the **Software Development** industry.",
+    "createdAt": "2025-12-12T19:45:58.075Z"
+  },
+  {
+    "id": 1765568813562,
+    "chatbotName": "test",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "code of conduct",
+    "createdAt": "2025-12-12T19:46:53.562Z"
+  },
+  {
+    "id": 1765568814820,
+    "chatbotName": "test",
+    "userEmail": "pushpu@gmail.com",
+    "role": "bot",
+    "text": "**Code of Conduct at Bright Technologies**\n\nAt Bright Technologies, we strive to maintain a respectful and inclusive work environment that fosters collaboration, creativity, and growth. Our Code of Conduct outlines the expectations and guidelines for all employees to ensure a positive and productive workplace.\n\n**Key Principles:**\n\n1. **Respect and Inclusion**: Treat all colleagues, customers, and partners with respect, dignity, and courtesy. Promote a culture of inclusion, diversity, and equality.\n2. **Confidentiality**: Protect confidential company information, including trade secrets, customer data, and employee personal information. Never share sensitive information outside the organization.\n3. **Professionalism**: Maintain high standards of professionalism in all interactions, including communication, behavior, and work quality.\n4. **Harassment-Free Workplace**: Zero tolerance for harassment, bullying, or discriminatory behavior of any kind. Report any incidents to HR or management immediately.\n\n**Expected Behaviors:**\n\n* Be considerate and respectful in all interactions, including verbal and non-verbal communication.\n* Avoid discriminatory or harassing behavior, including comments, jokes, or actions.\n* Keep confidential information secure and do not share it with unauthorized parties.\n* Report any concerns or incidents to HR or management promptly.\n* Participate in training and development programs to enhance skills and knowledge.\n* Contribute to a positive and inclusive work environment by being open-minded, empathetic, and supportive.\n\n**Consequences of Non-Compliance:**\n\n* Failure to comply with the Code of Conduct may result in disciplinary action, up to and including termination of employment.\n* Repeated or severe violations may lead to more severe consequences, including legal action.\n\n**Reporting Incidents:**\n\n* If you witness or experience any behavior that violates the Code of Conduct, report it to HR or management immediately.\n* You can also report incidents anonymously through our internal reporting system.\n\n**Our Commitment:**\n\nAt Bright Technologies, we are committed to maintaining a work environment that is respectful, inclusive, and free from harassment. We will continually review and update our Code of Conduct to ensure it remains relevant and effective in promoting a positive and productive workplace culture.",
+    "createdAt": "2025-12-12T19:46:54.820Z"
+  },
+  {
+    "id": 1765570031849,
+    "chatbotName": "test",
+    "userEmail": "pushpu@gmail.com",
+    "role": "user",
+    "text": "how many hours does an employee has to work in a day?",
+    "createdAt": "2025-12-12T20:07:11.849Z"
+  },
+  {
+    "id": 1765570032320,
+    "chatbotName": "test",
+    "userEmail": "pushpu@gmail.com",
+    "role": "bot",
+    "text": "According to the given information, the standard working hours are 9:00 AM to 6:00 PM, which is a total of 9 hours. However, employees can take a 1-hour lunch break, so the actual working hours would be 8 hours (9 hours - 1 hour lunch break).",
+    "createdAt": "2025-12-12T20:07:12.320Z"
+  }
+]
