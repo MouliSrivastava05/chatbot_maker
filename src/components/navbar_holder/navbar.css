@@ -56,7 +56,6 @@
 .nav-button:hover {
   background-color: var(--accent);
   border-color: var(--accent);
-  transform: translateY(-1px);
 }
 
 .nav-button.login {
@@ -110,73 +109,22 @@
   background-color: var(--accent);
   color: var(--accent-foreground);
   border-color: var(--accent);
-  transform: scale(1.05);
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 30px;
-  background-color: #1a1a1a;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #00ff84;
-}
-
-form input {
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #00ff84;
-  background-color: #000;
-  color: #d4ffd4;
-  border-radius: 5px;
-}
-
-form button {
-  background-color: #00ff84;
-  color: #000;
-  font-weight: bold;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-form button:hover {
-  background-color: #00cc6a;
 }
 
 @media (max-width: 768px) {
   .Navbar {
     flex-direction: column;
     padding: 1rem;
-  }
-
-  .nav-brand {
-    margin-bottom: 1rem;
-  }
-
-  .nav-links {
-    flex-direction: column;
-    width: 100%;
     gap: 1rem;
   }
 
-  .nav-button {
-    width: 100%;
-    text-align: center;
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
   }
 
   .nav-button.theme-toggle {
     margin-left: 0;
-    margin-top: 0.5rem;
   }
-}
-h1{
-  text-align: center;
-}
-a{
-  color: #00ff84;
 }
