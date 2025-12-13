@@ -232,14 +232,27 @@ const messagesFile = () => path.join(dbAddress, "messages.json");
 export const getMessages = async ({ chatbotName, userEmail }) => {
   try {
     const data = await getData(messagesFile());
-    return data.filter(
+    const filtered = data.filter(
       (m) => m.chatbotName === chatbotName && m.userEmail === userEmail
     );
+    // Sort by createdAt (or id) to ensure chronological order
+    return filtered.sort((a, b) => {
+      // Use createdAt if available, otherwise fall back to id
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id || 0);
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id || 0);
+      return timeA - timeB; // Ascending order (oldest first)
+    });
   } catch (error) {
     console.warn("Failed to get messages, using memory storage:", error.message);
-    return filterMemoryData('messages', 
+    const filtered = filterMemoryData('messages', 
       (m) => m.chatbotName === chatbotName && m.userEmail === userEmail
     );
+    // Sort memory data too
+    return filtered.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id || 0);
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id || 0);
+      return timeA - timeB;
+    });
   }
 };
 
