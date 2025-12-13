@@ -85,7 +85,9 @@ const Login = () => {
     try {
       // Check if Firebase is properly configured
       if (!auth || !googleProvider) {
-        throw new Error('Firebase authentication is not properly configured');
+        setError('Google sign-in is not available. Please use email and password to sign in, or configure Firebase in your environment variables.');
+        setIsGoogleLoading(false);
+        return;
       }
 
       const result = await signInWithPopup(auth, googleProvider);
