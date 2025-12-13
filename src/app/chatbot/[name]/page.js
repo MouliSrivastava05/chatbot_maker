@@ -21,32 +21,51 @@ export default function Page() {
   useEffect(() => {
     if (!ChatBotName) return
     const token = getToken()
+    // Extract email from token (format: timestamp#@#email)
+    const email = token?.split('#@#')[1] || 'anonymous'
+    
     getChatbotByName({ token, name: ChatBotName })
       .then((data) => {
         if (data?.name) {
           const context = data.context || "";
           console.log('Loaded chatbot context:', context ? `${context.substring(0, 100)}...` : 'No context provided');
           setBotDetails({ name: data.name, context: context })
-          storageKeyRef.current = `chat_history:${data.name}`
-          try {
-            const saved = localStorage.getItem(storageKeyRef.current)
-            if (saved) {
-              const parsed = JSON.parse(saved)
-              if (Array.isArray(parsed)) {
-                setChatHistory(parsed)
-              }
-            }
-          } catch {}
-          // Fetch server history for this user + chatbot
+          // Include email in storage key to prevent cross-user data leakage
+          storageKeyRef.current = `chat_history:${email}:${data.name}`
+          
+          // Fetch server history for this user + chatbot (server is source of truth)
           if (token) {
             fetchMessages({ token, chatbotName: data.name })
               .then((serverMsgs) => {
-                if (Array.isArray(serverMsgs) && serverMsgs.length) {
+                if (Array.isArray(serverMsgs)) {
+                  // Always use server data, even if empty (to clear old localStorage data)
                   const mapped = serverMsgs.map((m) => ({ role: m.role === "user" ? "You" : "Bot", text: m.text }))
                   setChatHistory(mapped)
                 }
               })
-              .catch(() => {})
+              .catch(() => {
+                // Fallback to localStorage only if server fetch fails
+                try {
+                  const saved = localStorage.getItem(storageKeyRef.current)
+                  if (saved) {
+                    const parsed = JSON.parse(saved)
+                    if (Array.isArray(parsed)) {
+                      setChatHistory(parsed)
+                    }
+                  }
+                } catch {}
+              })
+          } else {
+            // No token, try localStorage as fallback
+            try {
+              const saved = localStorage.getItem(storageKeyRef.current)
+              if (saved) {
+                const parsed = JSON.parse(saved)
+                if (Array.isArray(parsed)) {
+                  setChatHistory(parsed)
+                }
+              }
+            } catch {}
           }
         } else {
           console.warn("Chatbot data is invalid or missing name");
