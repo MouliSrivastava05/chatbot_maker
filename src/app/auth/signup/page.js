@@ -46,7 +46,7 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      // First sign up the user
+      // Sign up the user (which now returns a token directly)
       const signupResponse = await signup({
         email: formData.email,
         password: formData.password,
@@ -56,18 +56,13 @@ const Signup = () => {
         throw new Error(signupResponse?.message || 'Signup failed. Please try again.');
       }
 
-      // Then automatically log them in
-      const loginResponse = await login({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (!loginResponse || !loginResponse.token) {
-        throw new Error('Account created but login failed. Please try logging in manually.');
+      // Token is returned directly from signup, no need for separate login
+      if (!signupResponse.token) {
+        throw new Error('Account created but token generation failed. Please try logging in manually.');
       }
 
       // Store the token
-      localStorage.setItem("token", loginResponse.token);
+      localStorage.setItem("token", signupResponse.token);
       setIsLoggedIn(true);
       
       // Redirect to home page

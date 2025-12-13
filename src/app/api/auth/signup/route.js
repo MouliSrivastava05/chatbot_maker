@@ -1,6 +1,6 @@
 import path from "path";
 
-import { getData, postData } from "@/app/api/utils";
+import { getData, postData, registerToken } from "@/app/api/utils";
 import dbAddress from "@/db";
 
 const filePath = path.join(dbAddress, "users.json");
@@ -24,8 +24,14 @@ export async function POST(req) {
 
     await postData(filePath, { email, password });
 
+    // Generate and return token immediately so user doesn't need to login separately
+    const token = await registerToken(email);
+
     return new Response(
-      JSON.stringify({ message: "User created successfully" }),
+      JSON.stringify({ 
+        message: "User created successfully",
+        token: token 
+      }),
       { status: 201, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
