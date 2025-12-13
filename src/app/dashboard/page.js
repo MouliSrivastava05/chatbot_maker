@@ -15,7 +15,7 @@ const Dashboard = () => {
         context: ''
     })
 
-    // Load existing chatbots when component mounts
+    // Load existing chatbots when component mounts and when navigating back
     useEffect(() => {
         const loadChatbots = async () => {
             if (!isLoggedIn) return;
@@ -26,23 +26,63 @@ const Dashboard = () => {
             try {
                 const serverChatbots = await getChatbotsByCreator({ token });
                 if (Array.isArray(serverChatbots)) {
-                    setChatbots(serverChatbots);
+                    // Add createdAt if missing for display purposes
+                    const chatbotsWithDates = serverChatbots.map(c => ({
+                        ...c,
+                        createdAt: c.createdAt || new Date().toISOString()
+                    }));
+                    setChatbots(chatbotsWithDates);
+                } else {
+                    setChatbots([]);
                 }
             } catch (error) {
-                console.warn('Failed to load chatbots from server:', error);
+                console.error('Failed to load chatbots from server:', error);
                 // Try to load from localStorage as fallback
                 try {
                     const localChatbots = localStorage.getItem('user_chatbots');
                     if (localChatbots) {
                         setChatbots(JSON.parse(localChatbots));
+                    } else {
+                        setChatbots([]);
                     }
                 } catch (localError) {
                     console.warn('Failed to load chatbots from localStorage:', localError);
+                    setChatbots([]);
                 }
             }
         };
 
         loadChatbots();
+    }, [isLoggedIn]);
+    
+    // Also reload chatbots when component becomes visible again (user navigates back)
+    useEffect(() => {
+        if (!isLoggedIn) return;
+        
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                // Page is visible again, reload chatbots
+                const token = getToken();
+                if (token) {
+                    getChatbotsByCreator({ token })
+                        .then((serverChatbots) => {
+                            if (Array.isArray(serverChatbots)) {
+                                const chatbotsWithDates = serverChatbots.map(c => ({
+                                    ...c,
+                                    createdAt: c.createdAt || new Date().toISOString()
+                                }));
+                                setChatbots(chatbotsWithDates);
+                            }
+                        })
+                        .catch((error) => {
+                            console.warn('Failed to reload chatbots on visibility change:', error);
+                        });
+                }
+            }
+        };
+        
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [isLoggedIn]);
 
     // Save chatbots to localStorage whenever they change
@@ -83,12 +123,25 @@ const Dashboard = () => {
                     token: token 
                 });
 
-                // Update in local state
-                setChatbots(prev => prev.map(c => 
-                    c.name === formData.name 
-                        ? { ...c, context: formData.context, createdAt: new Date().toISOString() }
-                        : c
-                ));
+                // Reload chatbots from server to ensure we have the latest data
+                try {
+                    const serverChatbots = await getChatbotsByCreator({ token });
+                    if (Array.isArray(serverChatbots)) {
+                        const chatbotsWithDates = serverChatbots.map(c => ({
+                            ...c,
+                            createdAt: c.createdAt || new Date().toISOString()
+                        }));
+                        setChatbots(chatbotsWithDates);
+                    }
+                } catch (reloadError) {
+                    console.warn('Failed to reload chatbots after update:', reloadError);
+                    // Fallback: update in local state
+                    setChatbots(prev => prev.map(c => 
+                        c.name === formData.name 
+                            ? { ...c, context: formData.context, createdAt: new Date().toISOString() }
+                            : c
+                    ));
+                }
                 
                 alert('Chatbot updated successfully!');
             } else {
