@@ -430,5 +430,21 @@
     "role": "bot",
     "text": "To set up the LumiHome Smart Hub, follow these steps:\n\n1. Plug the Smart Hub into a power outlet using the provided adapter.\n2. Download the “LumiHome App” from the App Store or Google Play.\n3. Connect the hub to your home Wi-Fi network through the app’s setup wizard.\n4. Once connected, pair your smart devices using the “Add Device” option in the app.\n\nThis will get your LumiHome Smart Hub up and running, allowing you to control your smart devices through the app.",
     "createdAt": "2025-12-12T23:47:13.556Z"
+  },
+  {
+    "id": 1765608635397,
+    "chatbotName": "intern",
+    "userEmail": "moulisrivastava5@gmail.com",
+    "role": "user",
+    "text": "working guidelines",
+    "createdAt": "2025-12-13T06:50:35.397Z"
+  },
+  {
+    "id": 1765608636070,
+    "chatbotName": "intern",
+    "userEmail": "moulisrivastava5@gmail.com",
+    "role": "bot",
+    "text": "Based on the provided context, here are the working guidelines for BrightWave Technologies:\n\n1. **Working Hours**: Standard working hours are 9:00 AM to 6:00 PM, Monday to Friday. Employees can take a 1-hour lunch break anytime between 12:00 PM and 3:00 PM.\n\n2. **Leave Policy**: \n   - Employees get 12 paid leaves per year.\n   - Prior approval from the reporting manager is required for planned leaves.\n   - In case of emergencies, employees should communicate as soon as possible.\n\n3. **Remote Work Guidelines**:\n   - Remote work is allowed up to 2 days per week.\n   - Employees must be reachable during working hours on Slack.\n   - Daily standups must be attended over video call.\n\n4. **Code of Conduct**:\n   - Maintain a respectful and inclusive work environment.\n   - Sharing confidential company information outside the organization is strictly prohibited.\n   - Harassment of any kind will lead to disciplinary action.\n\n5. **IT & Equipment**:\n   - New employees receive a laptop, charger, backpack, and ID card on Day 1.\n   - For any technical issue, employees should raise a ticket through the internal IT Support system.",
+    "createdAt": "2025-12-13T06:50:36.070Z"
   }
 ]

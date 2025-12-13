@@ -9,7 +9,20 @@ import {
   filterMemoryData 
 } from "./memory-storage";
 
+// Detect if we're on Vercel (serverless) where file system is read-only
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+
 export const getData = async (filePath) => {
+  // On Vercel, always use memory storage since file writes don't persist
+  if (isVercel) {
+    let collection = 'default';
+    if (filePath.includes('users.json')) collection = 'users';
+    else if (filePath.includes('tokenRegistry.json')) collection = 'tokens';
+    else if (filePath.includes('chatbots.json')) collection = 'chatbots';
+    else if (filePath.includes('messages.json')) collection = 'messages';
+    return getMemoryData(collection);
+  }
+
   try {
     const data = await fs.readFile(filePath, "utf-8");
     return data ? JSON.parse(data) : [];
@@ -28,10 +41,22 @@ export const getData = async (filePath) => {
   }
 };
 export const postData = async (filePath, entry) => {
+  // On Vercel, always use memory storage since file writes don't persist
+  if (isVercel) {
+    let collection = 'default';
+    if (filePath.includes('users.json')) collection = 'users';
+    else if (filePath.includes('tokenRegistry.json')) collection = 'tokens';
+    else if (filePath.includes('chatbots.json')) collection = 'chatbots';
+    else if (filePath.includes('messages.json')) collection = 'messages';
+    addMemoryData(collection, entry);
+    return { success: true, storedInMemory: true };
+  }
+
   try {
     const data = await getData(filePath);
     data.push(entry);
-    return await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+    return { success: true };
   } catch (error) {
     // In deployment environments, file writing might fail, use memory storage
     console.warn(`Cannot write to ${filePath} in deployment environment, using memory storage:`, error.message);
@@ -49,8 +74,20 @@ export const postData = async (filePath, entry) => {
 };
 
 export const putData = async (filePath, data) => {
+  // On Vercel, always use memory storage since file writes don't persist
+  if (isVercel) {
+    let collection = 'default';
+    if (filePath.includes('users.json')) collection = 'users';
+    else if (filePath.includes('tokenRegistry.json')) collection = 'tokens';
+    else if (filePath.includes('chatbots.json')) collection = 'chatbots';
+    else if (filePath.includes('messages.json')) collection = 'messages';
+    setMemoryData(collection, data);
+    return { success: true, storedInMemory: true };
+  }
+
   try {
-    return await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+    return { success: true };
   } catch (error) {
     // In deployment environments, file writing might fail, use memory storage
     console.warn(`Cannot write to ${filePath} in deployment environment, using memory storage:`, error.message);
