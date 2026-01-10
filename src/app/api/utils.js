@@ -1,10 +1,10 @@
-import clientPromise from '@/lib/mongodb';
+import getClientPromise from '@/lib/mongodb';
 
 const DB_NAME = 'chatbotmaker';
 
 // Helper to get database
 const getDb = async () => {
-  const client = await clientPromise;
+  const client = await getClientPromise();
   return client.db(DB_NAME);
 };
 
