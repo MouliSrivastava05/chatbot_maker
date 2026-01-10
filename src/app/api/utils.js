@@ -10,23 +10,64 @@ const getDb = async () => {
 
 // Users collection operations
 export const getUserByEmail = async (email) => {
+  if (!email || typeof email !== 'string') {
+    throw new Error('Invalid email provided');
+  }
+
   try {
     const db = await getDb();
-    return await db.collection('users').findOne({ email });
+    const user = await db.collection('users').findOne({ email });
+    return user || null;
   } catch (error) {
     console.error('Error getting user:', error);
+    // If MongoDB is not configured, return null instead of throwing
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      console.warn('MongoDB not configured, returning null');
+      return null;
+    }
     throw error;
   }
 };
 
 export const createUser = async ({ email, password }) => {
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    throw new Error('Valid email is required');
+  }
+  if (!password || typeof password !== 'string') {
+    throw new Error('Password is required');
+  }
+
   try {
     const db = await getDb();
-    const result = await db.collection('users').insertOne({ email, password });
-    return { email, password, _id: result.insertedId };
+    
+    // Check if user already exists
+    const existingUser = await db.collection('users').findOne({ email });
+    if (existingUser) {
+      throw new Error('User already exists');
+    }
+    
+    const result = await db.collection('users').insertOne({ 
+      email, 
+      password,
+      createdAt: new Date()
+    });
+    
+    return { 
+      email, 
+      _id: result.insertedId,
+      createdAt: new Date()
+    };
   } catch (error) {
     console.error('Error creating user:', error);
-    throw error;
+    // Re-throw user-friendly errors as-is
+    if (error.message === 'User already exists') {
+      throw error;
+    }
+    // If MongoDB is not configured, throw a more helpful error
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      throw new Error('Database is not configured. Please configure MONGODB_URI.');
+    }
+    throw new Error('Failed to create user');
   }
 };
 
