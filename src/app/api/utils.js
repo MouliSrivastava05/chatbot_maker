@@ -328,36 +328,74 @@ export const deleteChatbot = async ({ name, email }) => {
 
 // Message operations
 export const getMessages = async ({ chatbotName, userEmail }) => {
+  // Validation
+  if (!chatbotName || typeof chatbotName !== 'string' || chatbotName.trim().length === 0) {
+    console.warn('Invalid chatbotName provided to getMessages');
+    return [];
+  }
+  if (!userEmail || typeof userEmail !== 'string' || !userEmail.includes('@')) {
+    console.warn('Invalid userEmail provided to getMessages');
+    return [];
+  }
+
   try {
     const db = await getDb();
     const messages = await db.collection('messages')
-      .find({ chatbotName, userEmail })
-      .sort({ createdAt: 1 })
+      .find({ 
+        chatbotName: chatbotName.trim(), 
+        userEmail: userEmail.trim() 
+      })
+      .sort({ createdAt: 1 }) // Oldest first (chronological order)
       .toArray();
+    
     // Convert MongoDB _id to id and ensure createdAt is ISO string
     return messages.map(msg => ({
       ...msg,
       id: msg._id.toString(),
+      chatbotName: msg.chatbotName,
+      userEmail: msg.userEmail,
+      role: msg.role,
+      text: msg.text,
       createdAt: msg.createdAt ? msg.createdAt.toISOString() : new Date().toISOString()
     }));
   } catch (error) {
     console.error('Failed to get messages:', error.message);
-    return [];
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      return [];
+    }
+    throw error;
   }
 };
 
 export const addMessage = async ({ chatbotName, userEmail, role, text }) => {
+  // Validation
+  if (!chatbotName || typeof chatbotName !== 'string' || chatbotName.trim().length === 0) {
+    throw new Error('Chatbot name is required');
+  }
+  if (!userEmail || typeof userEmail !== 'string' || !userEmail.includes('@')) {
+    throw new Error('Valid user email is required');
+  }
+  if (!role || typeof role !== 'string' || !['user', 'bot'].includes(role)) {
+    throw new Error('Message role must be "user" or "bot"');
+  }
+  if (!text || typeof text !== 'string' || text.trim().length === 0) {
+    throw new Error('Message text is required');
+  }
+
   try {
     const db = await getDb();
+    const now = new Date();
+    
     const entry = {
-      chatbotName,
-      userEmail,
-      role,
-      text,
-      createdAt: new Date(),
+      chatbotName: chatbotName.trim(),
+      userEmail: userEmail.trim(),
+      role: role.trim(),
+      text: text.trim(),
+      createdAt: now,
     };
     
     const result = await db.collection('messages').insertOne(entry);
+    
     return {
       ...entry,
       id: result.insertedId.toString(),
@@ -365,6 +403,9 @@ export const addMessage = async ({ chatbotName, userEmail, role, text }) => {
     };
   } catch (error) {
     console.error('Message addition failed:', error.message);
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      throw new Error('Database is not configured. Please configure MONGODB_URI.');
+    }
     throw error;
   }
 };
