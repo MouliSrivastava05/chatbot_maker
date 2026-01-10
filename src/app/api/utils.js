@@ -84,33 +84,75 @@ export const verifyToken = async (token) => {
       return true;
     }
     
-    // Fallback: check token format
+    // Fallback: check token format (for backward compatibility)
+    // This allows tokens created before MongoDB migration to still work
     const email = token.split('#@#')[1];
-    return !!(email && email.includes('@'));
+    if (email && email.includes('@')) {
+      return true;
+    }
+    
+    return false;
   } catch (error) {
     console.warn('Token verification failed:', error.message);
+    // If MongoDB is not configured, fall back to format validation
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      const email = token.split('#@#')[1];
+      return !!(email && email.includes('@'));
+    }
+    // For other errors, still allow format-based validation as fallback
     const email = token.split('#@#')[1];
     return !!(email && email.includes('@'));
   }
 };
 
 export const registerToken = async (email) => {
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    throw new Error('Valid email is required to create token');
+  }
+
   const token = new Date().toISOString() + '#@#' + email;
+  
   try {
     const db = await getDb();
-    await db.collection('tokens').insertOne({ token, email, createdAt: new Date() });
+    await db.collection('tokens').insertOne({ 
+      token, 
+      email, 
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+    });
   } catch (error) {
     console.warn('Token registration failed:', error.message);
+    // If MongoDB is not configured, still return the token
+    // This allows the app to work in development without MongoDB
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      console.warn('MongoDB not configured, token created but not persisted');
+    }
   }
+  
   return token;
 };
 
 export const removeToken = async (token) => {
+  if (!token || typeof token !== 'string') {
+    throw new Error('Valid token is required');
+  }
+
   try {
     const db = await getDb();
-    await db.collection('tokens').deleteOne({ token });
+    const result = await db.collection('tokens').deleteOne({ token });
+    
+    if (result.deletedCount === 0) {
+      console.warn(`Token not found in database: ${token.substring(0, 20)}...`);
+    }
+    
+    return result.deletedCount > 0;
   } catch (error) {
     console.error('Error removing token:', error);
+    // If MongoDB is not configured, don't throw - just log warning
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      console.warn('MongoDB not configured, token removal skipped');
+      return false;
+    }
     throw error;
   }
 };
