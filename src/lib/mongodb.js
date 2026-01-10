@@ -2,24 +2,37 @@
 // This allows the build to succeed even without MONGODB_URI configured
 
 let clientPromise;
-let isInitialized = false;
+let isInitializing = false;
 
 const getClientPromise = async () => {
   // Return cached promise if already initialized
-  if (isInitialized && clientPromise) {
+  if (clientPromise) {
     return clientPromise;
   }
 
-  const uri = process.env.MONGODB_URI;
-  
-  if (!uri || typeof uri !== 'string' || uri.length === 0) {
-    const error = new Error('MONGODB_URI is not defined. Please add it to your environment variables.');
-    clientPromise = Promise.reject(error);
-    isInitialized = true;
-    throw error;
+  // Prevent multiple simultaneous initializations
+  if (isInitializing) {
+    // Wait for the ongoing initialization
+    while (isInitializing) {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    if (clientPromise) {
+      return clientPromise;
+    }
   }
 
+  isInitializing = true;
+
   try {
+    const uri = process.env.MONGODB_URI;
+    
+    if (!uri || typeof uri !== 'string' || uri.length === 0) {
+      const error = new Error('MONGODB_URI is not defined. Please add it to your environment variables.');
+      clientPromise = Promise.reject(error);
+      isInitializing = false;
+      throw error;
+    }
+
     // Dynamic import to avoid build-time evaluation
     const { MongoClient } = await import('mongodb');
     
@@ -40,11 +53,11 @@ const getClientPromise = async () => {
       clientPromise = client.connect();
     }
     
-    isInitialized = true;
+    isInitializing = false;
     return clientPromise;
   } catch (error) {
     clientPromise = Promise.reject(error);
-    isInitialized = true;
+    isInitializing = false;
     throw error;
   }
 };
@@ -52,7 +65,3 @@ const getClientPromise = async () => {
 // Export the function directly instead of calling it
 // This prevents any code execution at module load time
 export default getClientPromise;
-
-
-
-
