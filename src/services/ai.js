@@ -1,10 +1,10 @@
-export const askGemini = async ({ text, context }) => {
+export const askGemini = async ({ text, context, conversationHistory = [] }) => {
   const response = await fetch("/api/ai", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text, context }),
+    body: JSON.stringify({ text, context, conversationHistory }),
   });
 
   if (!response.ok) {
