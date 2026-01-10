@@ -159,83 +159,169 @@ export const removeToken = async (token) => {
 
 // Chatbot operations
 export const createChatbot = async ({ name, context, email }) => {
+  // Validation
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    throw new Error('Chatbot name is required');
+  }
+  if (!context || typeof context !== 'string') {
+    throw new Error('Chatbot context is required');
+  }
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    throw new Error('Valid email is required');
+  }
+
   try {
     const db = await getDb();
-    const chatbotData = { name, context, creator: email, createdAt: new Date() };
+    const now = new Date();
     
-    await db.collection('chatbots').updateOne(
+    // Check if chatbot already exists for this creator
+    const existing = await db.collection('chatbots').findOne({ name, creator: email });
+    
+    const chatbotData = { 
+      name: name.trim(), 
+      context: context.trim(), 
+      creator: email,
+      updatedAt: now,
+      ...(existing ? {} : { createdAt: now }) // Only set createdAt if new
+    };
+    
+    const result = await db.collection('chatbots').updateOne(
       { name, creator: email },
       { $set: chatbotData },
       { upsert: true }
     );
     
-    return chatbotData;
+    return {
+      ...chatbotData,
+      _id: result.upsertedId || existing?._id,
+      createdAt: chatbotData.createdAt || existing?.createdAt || now
+    };
   } catch (error) {
     console.error('Chatbot creation failed:', error.message);
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      throw new Error('Database is not configured. Please configure MONGODB_URI.');
+    }
     throw error;
   }
 };
 
 export const getChatbotByCreator = async (email) => {
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    console.warn('Invalid email provided to getChatbotByCreator');
+    return [];
+  }
+
   try {
     const db = await getDb();
-    const chatbots = await db.collection('chatbots').find({ creator: email }).toArray();
+    const chatbots = await db.collection('chatbots')
+      .find({ creator: email })
+      .sort({ createdAt: -1 }) // Most recent first
+      .toArray();
+    
     // Convert MongoDB _id to id for frontend compatibility
     return chatbots.map(chatbot => ({
       ...chatbot,
       id: chatbot._id.toString(),
-      createdAt: chatbot.createdAt ? chatbot.createdAt.toISOString() : new Date().toISOString()
+      createdAt: chatbot.createdAt ? chatbot.createdAt.toISOString() : new Date().toISOString(),
+      updatedAt: chatbot.updatedAt ? chatbot.updatedAt.toISOString() : undefined
     }));
   } catch (error) {
     console.error('Failed to get chatbots by creator:', error.message);
-    return [];
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      return [];
+    }
+    throw error;
   }
 };
 
 export const getAllChatBots = async () => {
   try {
     const db = await getDb();
-    const chatbots = await db.collection('chatbots').find({}).toArray();
+    const chatbots = await db.collection('chatbots')
+      .find({})
+      .sort({ createdAt: -1 }) // Most recent first
+      .toArray();
+    
     // Convert MongoDB _id to id for frontend compatibility
     return chatbots.map(chatbot => ({
       ...chatbot,
       id: chatbot._id.toString(),
-      createdAt: chatbot.createdAt ? chatbot.createdAt.toISOString() : new Date().toISOString()
+      createdAt: chatbot.createdAt ? chatbot.createdAt.toISOString() : new Date().toISOString(),
+      updatedAt: chatbot.updatedAt ? chatbot.updatedAt.toISOString() : undefined
     }));
   } catch (error) {
     console.error('Failed to get all chatbots:', error.message);
-    return [];
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      return [];
+    }
+    throw error;
   }
 };
 
 export const getChatbotByName = async (name) => {
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    return null;
+  }
+
   try {
     const db = await getDb();
-    const chatbot = await db.collection('chatbots').findOne({ name });
+    const chatbot = await db.collection('chatbots').findOne({ name: name.trim() });
+    
     if (!chatbot) return null;
+    
     // Convert MongoDB _id to id for frontend compatibility
     return {
       ...chatbot,
       id: chatbot._id.toString(),
-      createdAt: chatbot.createdAt ? chatbot.createdAt.toISOString() : new Date().toISOString()
+      createdAt: chatbot.createdAt ? chatbot.createdAt.toISOString() : new Date().toISOString(),
+      updatedAt: chatbot.updatedAt ? chatbot.updatedAt.toISOString() : undefined
     };
   } catch (error) {
     console.error('Failed to get chatbot by name:', error.message);
-    return null;
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      return null;
+    }
+    throw error;
   }
 };
 
 export const deleteChatbot = async ({ name, email }) => {
+  // Validation
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    throw new Error('Chatbot name is required');
+  }
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    throw new Error('Valid email is required');
+  }
+
   try {
     const db = await getDb();
-    const result = await db.collection('chatbots').deleteOne({ name, creator: email });
     
-    // Also delete all messages for this chatbot
-    await db.collection('messages').deleteMany({ chatbotName: name });
+    // First verify the chatbot exists and belongs to this user
+    const chatbot = await db.collection('chatbots').findOne({ 
+      name: name.trim(), 
+      creator: email 
+    });
+    
+    if (!chatbot) {
+      return false; // Chatbot not found or doesn't belong to user
+    }
+    
+    // Delete the chatbot
+    const result = await db.collection('chatbots').deleteOne({ 
+      name: name.trim(), 
+      creator: email 
+    });
+    
+    // Also delete all messages for this chatbot (cascade delete)
+    await db.collection('messages').deleteMany({ chatbotName: name.trim() });
     
     return result.deletedCount > 0;
   } catch (error) {
     console.error('Failed to delete chatbot:', error.message);
+    if (error.message && error.message.includes('MONGODB_URI')) {
+      throw new Error('Database is not configured. Please configure MONGODB_URI.');
+    }
     throw error;
   }
 };
