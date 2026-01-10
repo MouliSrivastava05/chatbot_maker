@@ -1,9 +1,4 @@
-import path from "path";
-
-import { getData, putData } from "@/app/api/utils";
-import dbAddress  from "@/db";
-
-const tokenFilePath = path.join(dbAddress, "tokenRegistry.json");
+import { removeToken } from "@/app/api/utils";
 
 export async function POST(req) {
   try {
@@ -17,12 +12,7 @@ export async function POST(req) {
       });
     }
 
-    const tokens = await getData(tokenFilePath);
-    const updatedTokens = tokens.filter(
-      (existingToken) => existingToken !== token
-    );
-
-    await putData(tokenFilePath, updatedTokens);
+    await removeToken(token);
 
     return new Response(
       JSON.stringify({ message: "User logged out successfully" }),

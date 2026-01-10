@@ -11,39 +11,37 @@
 }
 
 .auth-card {
-  width: 90%;
-  max-width: 500px;
-  padding: 4rem 3.5rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 3.5rem 3rem;
   background: var(--card);
   color: var(--card-foreground);
   border-radius: 16px;
   border: 1px solid var(--primary);
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   transition: all 0.3s ease;
   position: relative;
   box-shadow: 0 8px 32px rgba(245, 230, 211, 0.2);
   overflow: hidden;
   z-index: 1;
-  box-sizing: border-box;
 }
 
 .auth-header {
   text-align: center;
   margin-bottom: 2rem;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .auth-header h1 {
-  font-size: 2rem;
-  font-weight: 400;
+  font-size: 1.5rem;
+  font-weight: 300;
   color: var(--foreground);
   margin-bottom: 0.75rem;
   transition: color 0.3s ease;
-  letter-spacing: 0;
-  text-transform: none;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .auth-header p {
@@ -57,7 +55,6 @@
   flex-direction: column;
   gap: 1.25rem;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .form-group {
@@ -65,7 +62,6 @@
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .form-group label {
@@ -129,6 +125,11 @@
   color: var(--primary);
 }
 
+.auth-button:hover:not(:disabled) {
+  background: transparent;
+  color: var(--primary);
+}
+
 .auth-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -167,64 +168,38 @@
 }
 
 .auth-error {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background-color: #ef4444;
+  color: white;
   padding: 1rem;
-  border-radius: 12px;
+  border-radius: 8px;
   margin-bottom: 1rem;
   font-size: 0.875rem;
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  line-height: 1.6;
-}
-
-.auth-error a {
-  color: var(--primary);
-  text-decoration: underline;
-}
-
-.auth-divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 1.5rem 0;
-  width: 100%;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid var(--border);
-}
-
-.auth-divider span {
-  padding: 0 1rem;
-  color: var(--muted-foreground);
-  font-size: 0.875rem;
+  border: none;
 }
 
 .google-button {
-  background-color: transparent;
+  background-color: var(--secondary);
   color: var(--foreground);
-  padding: 1rem;
+  padding: 0.75rem;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
-  font-size: 0.9375rem;
-  transition: all 0.3s ease;
+  font-size: 1rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
   width: 100%;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .google-button:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--muted);
   border-color: var(--primary);
 }
 
@@ -240,11 +215,10 @@
   }
 
   .auth-card {
-    width: 100%;
-    padding: 2.5rem 2rem;
+    padding: 1.5rem;
   }
 
   .auth-header h1 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 }

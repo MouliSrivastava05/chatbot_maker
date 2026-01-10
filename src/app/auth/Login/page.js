@@ -31,9 +31,58 @@ const Login = () => {
         password,
       });
 
+      // If no response or invalid response structure
+      if (!response || typeof response !== 'object') {
+        setError(
+          <div>
+            Hey there! 👋<br />
+            We don&#39;t have an account with {email} yet. No worries though!<br />
+            <Link href="/auth/signup" className="auth-link">
+              Click here to create your account
+            </Link>
+          </div>
+        );
+        return;
+      }
+
+      // Handle error responses
+      if (response.err) {
+        if (response.err === "User does not exists") {
+          setError(
+            <div>
+              Hey there! 👋<br />
+              We don&#39;t have an account with {email} yet. No worries though!<br />
+              <Link href="/auth/signup" className="auth-link">
+                Click here to create your account
+              </Link>
+            </div>
+          );
+        } else if (response.err === "Password does not match") {
+          setError(
+            <div>
+              Hmm, that password doesn&#39;t seem right for {email} 🤔<br />
+              <Link href="/auth/forgot-password" className="auth-link">
+                Forgot your password? Click here to reset it
+              </Link>
+            </div>
+          );
+        } else {
+          setError(response.err);
+        }
+        return;
+      }
+
       // Check for token
-      if (!response || !response.token) {
-        setError('Login failed. Please check your credentials and try again.');
+      if (!response.token) {
+        setError(
+          <div>
+            Hey there! 👋<br />
+            We don&#39;t have an account with {email} yet. No worries though!<br />
+            <Link href="/auth/signup" className="auth-link">
+              Click here to create your account
+            </Link>
+          </div>
+        );
         return;
       }
 
@@ -45,33 +94,26 @@ const Login = () => {
       setSuccessMessage(
         <div className="auth-success">
           Welcome back! 🎉<br />
-          Redirecting you to the home page...
+          Redirecting you to your dashboard...
         </div>
       );
 
       // Wait for 1.5 seconds to show the welcome message before redirecting
       setTimeout(() => {
-        router.push('/');
+        router.push('/dashboard');
       }, 1500);
 
     } catch (err) {
       console.error('Login error:', err);
-      const errorMessage = err.message || err.data?.err || 'Login failed';
-      
-      if (errorMessage.includes('does not exists') || errorMessage.includes('does not exist')) {
-        setError(
-          <div>
-            We don&#39;t have an account with {email} yet.<br />
-            <Link href="/auth/signup" className="auth-link">
-              Click here to create your account
-            </Link>
-          </div>
-        );
-      } else if (errorMessage.includes('Password') || errorMessage.includes('password')) {
-        setError('Incorrect password. Please try again.');
-      } else {
-        setError(errorMessage);
-      }
+      setError(
+        <div>
+          Hey there! 👋<br />
+          We don't have an account with {email} yet. No worries though!<br />
+          <Link href="/auth/signup" className="auth-link">
+            Click here to create your account
+          </Link>
+        </div>
+      );
     } finally {
       setIsLoading(false);
     }
@@ -85,9 +127,7 @@ const Login = () => {
     try {
       // Check if Firebase is properly configured
       if (!auth || !googleProvider) {
-        setError('Google sign-in is not available. Please use email and password to sign in, or configure Firebase in your environment variables.');
-        setIsGoogleLoading(false);
-        return;
+        throw new Error('Firebase authentication is not properly configured');
       }
 
       const result = await signInWithPopup(auth, googleProvider);
@@ -108,12 +148,12 @@ const Login = () => {
         setSuccessMessage(
           <div className="auth-success">
             Welcome! 🎉<br />
-            Redirecting you to the home page...
+            Redirecting you to your dashboard...
           </div>
         );
 
         setTimeout(() => {
-          router.push('/');
+          router.push('/dashboard');
         }, 1500);
       } else {
         throw new Error('Failed to create user session');
@@ -182,23 +222,22 @@ const Login = () => {
         </form>
 
         <div className="auth-footer">
-          <div className="auth-divider">
-            <span>or</span>
-          </div>
-          <button 
-            type="button" 
-            className="auth-button google-button" 
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading || isLoading}
-          >
-            {isGoogleLoading ? 'Signing in with Google...' : 'Continue with Google'}
-          </button>
-          <p style={{ marginTop: '1.5rem' }}>
+          <p>
             Don&#39;t have an account?{' '}
             <Link href="/auth/signup" className="auth-link">
               Sign up
             </Link>
           </p>
+          <div style={{ marginTop: '12px' }}>
+            <button 
+              type="button" 
+              className="auth-button" 
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading || isLoading}
+            >
+              {isGoogleLoading ? 'Signing in with Google...' : 'Continue with Google'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

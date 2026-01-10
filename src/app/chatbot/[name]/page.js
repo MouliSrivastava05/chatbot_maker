@@ -21,51 +21,30 @@ export default function Page() {
   useEffect(() => {
     if (!ChatBotName) return
     const token = getToken()
-    // Extract email from token (format: timestamp#@#email)
-    const email = token?.split('#@#')[1] || 'anonymous'
-    
     getChatbotByName({ token, name: ChatBotName })
       .then((data) => {
         if (data?.name) {
-          const context = data.context || "";
-          console.log('Loaded chatbot context:', context ? `${context.substring(0, 100)}...` : 'No context provided');
-          setBotDetails({ name: data.name, context: context })
-          // Include email in storage key to prevent cross-user data leakage
-          storageKeyRef.current = `chat_history:${email}:${data.name}`
-          
-          // Fetch server history for this user + chatbot (server is source of truth)
+          setBotDetails({ name: data.name, context: data.context || "" })
+          storageKeyRef.current = `chat_history:${data.name}`
+          try {
+            const saved = localStorage.getItem(storageKeyRef.current)
+            if (saved) {
+              const parsed = JSON.parse(saved)
+              if (Array.isArray(parsed)) {
+                setChatHistory(parsed)
+              }
+            }
+          } catch {}
+          // Fetch server history for this user + chatbot
           if (token) {
             fetchMessages({ token, chatbotName: data.name })
               .then((serverMsgs) => {
-                if (Array.isArray(serverMsgs)) {
-                  // Always use server data, even if empty (to clear old localStorage data)
+                if (Array.isArray(serverMsgs) && serverMsgs.length) {
                   const mapped = serverMsgs.map((m) => ({ role: m.role === "user" ? "You" : "Bot", text: m.text }))
                   setChatHistory(mapped)
                 }
               })
-              .catch(() => {
-                // Fallback to localStorage only if server fetch fails
-                try {
-                  const saved = localStorage.getItem(storageKeyRef.current)
-                  if (saved) {
-                    const parsed = JSON.parse(saved)
-                    if (Array.isArray(parsed)) {
-                      setChatHistory(parsed)
-                    }
-                  }
-                } catch {}
-              })
-          } else {
-            // No token, try localStorage as fallback
-            try {
-              const saved = localStorage.getItem(storageKeyRef.current)
-              if (saved) {
-                const parsed = JSON.parse(saved)
-                if (Array.isArray(parsed)) {
-                  setChatHistory(parsed)
-                }
-              }
-            } catch {}
+              .catch(() => {})
           }
         } else {
           console.warn("Chatbot data is invalid or missing name");
@@ -74,14 +53,7 @@ export default function Page() {
       })
       .catch((err) => {
         console.error("Failed to load chatbot:", err);
-        // Show user-friendly error message
-        if (err.message && err.message.includes("not found")) {
-          setChatHistory([{
-            role: "Bot",
-            text: `Sorry, the chatbot "${ChatBotName}" was not found. Please check the chatbot name or create it first.`
-          }])
-        }
-        // Set fallback data with empty context
+        // Set fallback data so user can still use the chat
         setBotDetails({ name: ChatBotName, context: "" })
       })
   }, [ChatBotName])
@@ -114,13 +86,9 @@ export default function Page() {
       if (token && botDetails.name) {
         addMessageApi({ token, chatbotName: botDetails.name, role: "user", text: userMessage }).catch(() => {})
       }
-      // Ensure context is passed correctly
-      const contextToUse = botDetails.context || "";
-      console.log('Sending message with context:', contextToUse ? `${contextToUse.substring(0, 50)}...` : 'No context');
-      
       const response = await askGemini({
         text: userMessage,
-        context: contextToUse,
+        context: botDetails.context,
       })
       const data = await response.json()
       const botMessage = data?.response?.candidates?.[0]?.content?.parts?.[0]?.text || ""

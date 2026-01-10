@@ -3,7 +3,7 @@ import React, { useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AuthContext } from '@/context/auth'
 import './dashboard.css'
-import { createChatbot, getChatbotsByCreator, deleteChatbot } from '@/services/chatbot'
+import { createChatbot, getChatbotsByCreator } from '@/services/chatbot'
 import { getToken } from '@/helpers/auth'
 const Dashboard = () => {
     const router = useRouter()
@@ -15,7 +15,7 @@ const Dashboard = () => {
         context: ''
     })
 
-    // Load existing chatbots when component mounts and when navigating back
+    // Load existing chatbots when component mounts
     useEffect(() => {
         const loadChatbots = async () => {
             if (!isLoggedIn) return;
@@ -26,63 +26,23 @@ const Dashboard = () => {
             try {
                 const serverChatbots = await getChatbotsByCreator({ token });
                 if (Array.isArray(serverChatbots)) {
-                    // Add createdAt if missing for display purposes
-                    const chatbotsWithDates = serverChatbots.map(c => ({
-                        ...c,
-                        createdAt: c.createdAt || new Date().toISOString()
-                    }));
-                    setChatbots(chatbotsWithDates);
-                } else {
-                    setChatbots([]);
+                    setChatbots(serverChatbots);
                 }
             } catch (error) {
-                console.error('Failed to load chatbots from server:', error);
+                console.warn('Failed to load chatbots from server:', error);
                 // Try to load from localStorage as fallback
                 try {
                     const localChatbots = localStorage.getItem('user_chatbots');
                     if (localChatbots) {
                         setChatbots(JSON.parse(localChatbots));
-                    } else {
-                        setChatbots([]);
                     }
                 } catch (localError) {
                     console.warn('Failed to load chatbots from localStorage:', localError);
-                    setChatbots([]);
                 }
             }
         };
 
         loadChatbots();
-    }, [isLoggedIn]);
-    
-    // Also reload chatbots when component becomes visible again (user navigates back)
-    useEffect(() => {
-        if (!isLoggedIn) return;
-        
-        const handleVisibilityChange = () => {
-            if (!document.hidden) {
-                // Page is visible again, reload chatbots
-                const token = getToken();
-                if (token) {
-                    getChatbotsByCreator({ token })
-                        .then((serverChatbots) => {
-                            if (Array.isArray(serverChatbots)) {
-                                const chatbotsWithDates = serverChatbots.map(c => ({
-                                    ...c,
-                                    createdAt: c.createdAt || new Date().toISOString()
-                                }));
-                                setChatbots(chatbotsWithDates);
-                            }
-                        })
-                        .catch((error) => {
-                            console.warn('Failed to reload chatbots on visibility change:', error);
-                        });
-                }
-            }
-        };
-        
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [isLoggedIn]);
 
     // Save chatbots to localStorage whenever they change
@@ -123,25 +83,12 @@ const Dashboard = () => {
                     token: token 
                 });
 
-                // Reload chatbots from server to ensure we have the latest data
-                try {
-                    const serverChatbots = await getChatbotsByCreator({ token });
-                    if (Array.isArray(serverChatbots)) {
-                        const chatbotsWithDates = serverChatbots.map(c => ({
-                            ...c,
-                            createdAt: c.createdAt || new Date().toISOString()
-                        }));
-                        setChatbots(chatbotsWithDates);
-                    }
-                } catch (reloadError) {
-                    console.warn('Failed to reload chatbots after update:', reloadError);
-                    // Fallback: update in local state
-                    setChatbots(prev => prev.map(c => 
-                        c.name === formData.name 
-                            ? { ...c, context: formData.context, createdAt: new Date().toISOString() }
-                            : c
-                    ));
-                }
+                // Update in local state
+                setChatbots(prev => prev.map(c => 
+                    c.name === formData.name 
+                        ? { ...c, context: formData.context, createdAt: new Date().toISOString() }
+                        : c
+                ));
                 
                 alert('Chatbot updated successfully!');
             } else {
@@ -203,34 +150,34 @@ const Dashboard = () => {
                 return;
             }
 
-            // Delete from server first
-            await deleteChatbot({ token, name: chatbot.name });
+            const response = await fetch(`/api/chatbot/delete?name=${encodeURIComponent(chatbot.name)}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-            // Remove from local state - keep items that don't match by name (name is the unique identifier)
-            setChatbots(prev => prev.filter(c => c.name !== chatbot.name));
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.err || 'Failed to delete chatbot');
+            }
+
+            // Remove from local state
+            setChatbots(prev => prev.filter(c => c.id !== chatbot.id && c.name !== chatbot.name));
             
             // Remove from localStorage
             const localChatbots = localStorage.getItem('user_chatbots');
             if (localChatbots) {
                 const parsed = JSON.parse(localChatbots);
-                const filtered = parsed.filter(c => c.name !== chatbot.name);
+                const filtered = parsed.filter(c => c.id !== chatbot.id && c.name !== chatbot.name);
                 localStorage.setItem('user_chatbots', JSON.stringify(filtered));
-            }
-            
-            // Reload chatbots from server to ensure sync
-            try {
-                const serverChatbots = await getChatbotsByCreator({ token });
-                if (Array.isArray(serverChatbots)) {
-                    setChatbots(serverChatbots);
-                }
-            } catch (error) {
-                console.warn('Failed to reload chatbots after delete:', error);
             }
 
             alert('Chatbot deleted successfully!');
         } catch (error) {
             console.error('Failed to delete chatbot:', error);
-            alert(error.message || 'Failed to delete chatbot. Please try again.');
+            alert('Failed to delete chatbot. Please try again.');
         }
     }
     if (!isLoggedIn) {

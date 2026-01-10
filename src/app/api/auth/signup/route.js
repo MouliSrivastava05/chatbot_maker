@@ -1,17 +1,10 @@
-import path from "path";
-
-import { getData, postData, registerToken } from "@/app/api/utils";
-import dbAddress from "@/db";
-
-const filePath = path.join(dbAddress, "users.json");
+import { getUserByEmail, createUser } from "@/app/api/utils";
 
 export async function POST(req) {
   try {
     const { email, password } = await req.json();
 
-    const users = await getData(filePath);
-
-    const existingUser = users.find((user) => user.email === email);
+    const existingUser = await getUserByEmail(email);
     if (existingUser) {
       return new Response(
         JSON.stringify({ message: "User already exists" }),
@@ -22,16 +15,10 @@ export async function POST(req) {
       );
     }
 
-    await postData(filePath, { email, password });
-
-    // Generate and return token immediately so user doesn't need to login separately
-    const token = await registerToken(email);
+    await createUser({ email, password });
 
     return new Response(
-      JSON.stringify({ 
-        message: "User created successfully",
-        token: token 
-      }),
+      JSON.stringify({ message: "User created successfully" }),
       { status: 201, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {

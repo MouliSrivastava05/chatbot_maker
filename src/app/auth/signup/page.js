@@ -38,42 +38,29 @@ const Signup = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // Sign up the user (which now returns a token directly)
-      const signupResponse = await signup({
+      // First sign up the user
+      await signup({
         email: formData.email,
         password: formData.password,
       });
 
-      if (!signupResponse || signupResponse.message !== "User created successfully") {
-        throw new Error(signupResponse?.message || 'Signup failed. Please try again.');
-      }
-
-      // Token is returned directly from signup, no need for separate login
-      if (!signupResponse.token) {
-        throw new Error('Account created but token generation failed. Please try logging in manually.');
-      }
+      // Then automatically log them in
+      const loginResponse = await login({
+        email: formData.email,
+        password: formData.password,
+      });
 
       // Store the token
-      localStorage.setItem("token", signupResponse.token);
+      localStorage.setItem("token", loginResponse.token);
       setIsLoggedIn(true);
       
-      // Redirect to home page
-      router.push('/');
+      // Redirect to dashboard
+      router.push('/dashboard');
     } catch (err) {
-      console.error('Signup error:', err);
-      if (err.message?.includes('already exists') || err.data?.message?.includes('already exists')) {
-        setError('An account with this email already exists. Please sign in instead.');
-      } else {
-        setError(err.message || err.data?.message || 'Signup failed. Please try again.');
-      }
+      setError(err.message || 'Signup failed');
     } finally {
       setIsLoading(false);
     }
@@ -86,9 +73,7 @@ const Signup = () => {
     try {
       // Check if Firebase is properly configured
       if (!auth || !googleProvider) {
-        setError('Google sign-in is not available. Please use email and password to sign up, or configure Firebase in your environment variables.');
-        setIsGoogleLoading(false);
-        return;
+        throw new Error('Firebase authentication is not properly configured');
       }
 
       const result = await signInWithPopup(auth, googleProvider);
@@ -106,8 +91,8 @@ const Signup = () => {
         localStorage.setItem("token", reg.token);
         setIsLoggedIn(true);
         
-        // Redirect to home page
-        router.push('/');
+        // Redirect to dashboard
+        router.push('/dashboard');
       } else {
         throw new Error('Failed to create user session');
       }
@@ -202,23 +187,22 @@ const Signup = () => {
         </form>
 
         <div className="auth-footer">
-          <div className="auth-divider">
-            <span>or</span>
-          </div>
-          <button 
-            type="button" 
-            className="auth-button google-button" 
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading || isLoading}
-          >
-            {isGoogleLoading ? 'Signing up with Google...' : 'Continue with Google'}
-          </button>
-          <p style={{ marginTop: '1.5rem' }}>
+          <p>
             Already have an account?{' '}
             <Link href="/auth/Login" className="auth-link">
               Sign in
             </Link>
           </p>
+          <div style={{ marginTop: '12px' }}>
+            <button 
+              type="button" 
+              className="auth-button" 
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading || isLoading}
+            >
+              {isGoogleLoading ? 'Signing up with Google...' : 'Continue with Google'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

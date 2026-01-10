@@ -1,286 +1,218 @@
-import { promises as fs } from "fs";
-import dbAddress from "@/db";
-import path from "path";
-import { 
-  getMemoryData, 
-  setMemoryData, 
-  addMemoryData, 
-  findMemoryData, 
-  filterMemoryData 
-} from "./memory-storage";
+import clientPromise from '@/lib/mongodb';
 
-// Detect if we're on Vercel (serverless) where file system is read-only
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const DB_NAME = 'chatbotmaker';
 
-export const getData = async (filePath) => {
-  // On Vercel, always use memory storage since file writes don't persist
-  if (isVercel) {
-    let collection = 'default';
-    if (filePath.includes('users.json')) collection = 'users';
-    else if (filePath.includes('tokenRegistry.json')) collection = 'tokens';
-    else if (filePath.includes('chatbots.json')) collection = 'chatbots';
-    else if (filePath.includes('messages.json')) collection = 'messages';
-    return getMemoryData(collection);
-  }
-
-  try {
-    const data = await fs.readFile(filePath, "utf-8");
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    // If file doesn't exist or can't be read, fall back to memory storage
-    console.warn(`File ${filePath} not found or empty, using memory storage:`, error.message);
-    
-    // Determine collection based on file path
-    let collection = 'default';
-    if (filePath.includes('users.json')) collection = 'users';
-    else if (filePath.includes('tokenRegistry.json')) collection = 'tokens';
-    else if (filePath.includes('chatbots.json')) collection = 'chatbots';
-    else if (filePath.includes('messages.json')) collection = 'messages';
-    
-    return getMemoryData(collection);
-  }
+// Helper to get database
+const getDb = async () => {
+  const client = await clientPromise;
+  return client.db(DB_NAME);
 };
-export const postData = async (filePath, entry) => {
-  // On Vercel, always use memory storage since file writes don't persist
-  if (isVercel) {
-    let collection = 'default';
-    if (filePath.includes('users.json')) collection = 'users';
-    else if (filePath.includes('tokenRegistry.json')) collection = 'tokens';
-    else if (filePath.includes('chatbots.json')) collection = 'chatbots';
-    else if (filePath.includes('messages.json')) collection = 'messages';
-    addMemoryData(collection, entry);
-    return { success: true, storedInMemory: true };
-  }
 
+// Users collection operations
+export const getUserByEmail = async (email) => {
   try {
-    const data = await getData(filePath);
-    data.push(entry);
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
-    return { success: true };
+    const db = await getDb();
+    return await db.collection('users').findOne({ email });
   } catch (error) {
-    // In deployment environments, file writing might fail, use memory storage
-    console.warn(`Cannot write to ${filePath} in deployment environment, using memory storage:`, error.message);
-    
-    // Determine collection based on file path
-    let collection = 'default';
-    if (filePath.includes('users.json')) collection = 'users';
-    else if (filePath.includes('tokenRegistry.json')) collection = 'tokens';
-    else if (filePath.includes('chatbots.json')) collection = 'chatbots';
-    else if (filePath.includes('messages.json')) collection = 'messages';
-    
-    addMemoryData(collection, entry);
-    return { success: true, storedInMemory: true };
+    console.error('Error getting user:', error);
+    throw error;
   }
 };
 
-export const putData = async (filePath, data) => {
-  // On Vercel, always use memory storage since file writes don't persist
-  if (isVercel) {
-    let collection = 'default';
-    if (filePath.includes('users.json')) collection = 'users';
-    else if (filePath.includes('tokenRegistry.json')) collection = 'tokens';
-    else if (filePath.includes('chatbots.json')) collection = 'chatbots';
-    else if (filePath.includes('messages.json')) collection = 'messages';
-    setMemoryData(collection, data);
-    return { success: true, storedInMemory: true };
-  }
-
+export const createUser = async ({ email, password }) => {
   try {
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
-    return { success: true };
+    const db = await getDb();
+    const result = await db.collection('users').insertOne({ email, password });
+    return { email, password, _id: result.insertedId };
   } catch (error) {
-    // In deployment environments, file writing might fail, use memory storage
-    console.warn(`Cannot write to ${filePath} in deployment environment, using memory storage:`, error.message);
-    
-    // Determine collection based on file path
-    let collection = 'default';
-    if (filePath.includes('users.json')) collection = 'users';
-    else if (filePath.includes('tokenRegistry.json')) collection = 'tokens';
-    else if (filePath.includes('chatbots.json')) collection = 'chatbots';
-    else if (filePath.includes('messages.json')) collection = 'messages';
-    
-    setMemoryData(collection, data);
-    return { success: true, storedInMemory: true };
+    console.error('Error creating user:', error);
+    throw error;
   }
 };
 
+// Token operations
 export const verifyToken = async (token) => {
-  // First check if token format is valid
   if (!token || typeof token !== 'string' || !token.includes('#@#')) {
     return false;
   }
 
   try {
-    const file = path.join(dbAddress, "tokenRegistry.json");
-    const tokens = await getData(file);
-    
-    // Check if token exists in registry
-    if (Array.isArray(tokens) && tokens.includes(token)) {
+    const db = await getDb();
+    const tokenDoc = await db.collection('tokens').findOne({ token });
+    if (tokenDoc) {
       return true;
     }
     
-    // If not in registry, check memory storage
-    const memoryTokens = getMemoryData('tokens');
-    if (Array.isArray(memoryTokens) && memoryTokens.includes(token)) {
-      return true;
-    }
-    
-    // If token format is valid (contains #@# and has email), allow access
-    // This handles cases where token was created but not saved to registry
+    // Fallback: check token format
     const email = token.split('#@#')[1];
-    if (email && email.includes('@')) {
-      console.warn(`Token not in registry but format is valid, allowing access for: ${email}`);
-      return true;
-    }
-    
-    return false;
+    return !!(email && email.includes('@'));
   } catch (error) {
-    console.warn("Token verification failed, using format validation:", error.message);
-    // Fall back to format validation
+    console.warn('Token verification failed:', error.message);
     const email = token.split('#@#')[1];
     return !!(email && email.includes('@'));
   }
 };
 
 export const registerToken = async (email) => {
-  const token = new Date().toISOString() + "#@#" + email;
+  const token = new Date().toISOString() + '#@#' + email;
   try {
-    const file = path.join(dbAddress, "tokenRegistry.json");
-    await postData(file, token);
+    const db = await getDb();
+    await db.collection('tokens').insertOne({ token, email, createdAt: new Date() });
   } catch (error) {
-    console.warn("Token registration failed:", error.message);
-    // Continue anyway - token is still valid for session
+    console.warn('Token registration failed:', error.message);
   }
   return token;
 };
+
+export const removeToken = async (token) => {
+  try {
+    const db = await getDb();
+    await db.collection('tokens').deleteOne({ token });
+  } catch (error) {
+    console.error('Error removing token:', error);
+    throw error;
+  }
+};
+
+// Chatbot operations
 export const createChatbot = async ({ name, context, email }) => {
   try {
-    const filePath = path.join(dbAddress, "chatbots.json");
-    let data = await getData(filePath);
+    const db = await getDb();
+    const chatbotData = { name, context, creator: email, createdAt: new Date() };
     
-    // Filter out empty or invalid chatbot objects
-    data = data.filter(chatbot => chatbot && chatbot.name && chatbot.creator);
-
-    // Check if chatbot with same name and creator already exists
-    const existingIndex = data.findIndex(
-      chatbot => chatbot.name === name && chatbot.creator === email
+    await db.collection('chatbots').updateOne(
+      { name, creator: email },
+      { $set: chatbotData },
+      { upsert: true }
     );
-
-    const chatbotData = {
-      name,
-      context,
-      creator: email,
-    };
-
-    if (existingIndex >= 0) {
-      // Update existing chatbot
-      data[existingIndex] = chatbotData;
-    } else {
-      // Add new chatbot
-      data.push(chatbotData);
-    }
-
-    await putData(filePath, data);
+    
     return chatbotData;
   } catch (error) {
-    console.error("Chatbot creation failed:", error.message);
-    throw error; // Re-throw to let API route handle it properly
+    console.error('Chatbot creation failed:', error.message);
+    throw error;
   }
 };
 
 export const getChatbotByCreator = async (email) => {
   try {
-    const filePath = path.join(dbAddress, "chatbots.json");
-    const data = await getData(filePath);
-    // Filter out empty/invalid objects and match by creator
-    return data.filter((chatbot) => chatbot && chatbot.name && chatbot.creator === email);
+    const db = await getDb();
+    const chatbots = await db.collection('chatbots').find({ creator: email }).toArray();
+    // Convert MongoDB _id to id for frontend compatibility
+    return chatbots.map(chatbot => ({
+      ...chatbot,
+      id: chatbot._id.toString(),
+      createdAt: chatbot.createdAt ? chatbot.createdAt.toISOString() : new Date().toISOString()
+    }));
   } catch (error) {
-    console.warn("Failed to get chatbots by creator, using memory storage:", error.message);
-    const memoryChatbots = getMemoryData('chatbots');
-    return filterMemoryData('chatbots', (chatbot) => chatbot && chatbot.creator === email);
+    console.error('Failed to get chatbots by creator:', error.message);
+    return [];
   }
 };
 
 export const getAllChatBots = async () => {
   try {
-    const filePath = path.join(dbAddress, "chatbots.json");
-    const data = await getData(filePath);
-    // Filter out empty/invalid objects
-    return data.filter((chatbot) => chatbot && chatbot.name && chatbot.creator);
+    const db = await getDb();
+    const chatbots = await db.collection('chatbots').find({}).toArray();
+    // Convert MongoDB _id to id for frontend compatibility
+    return chatbots.map(chatbot => ({
+      ...chatbot,
+      id: chatbot._id.toString(),
+      createdAt: chatbot.createdAt ? chatbot.createdAt.toISOString() : new Date().toISOString()
+    }));
   } catch (error) {
-    console.warn("Failed to get all chatbots, using memory storage:", error.message);
-    return getMemoryData('chatbots');
+    console.error('Failed to get all chatbots:', error.message);
+    return [];
   }
 };
 
 export const getChatbotByName = async (name) => {
   try {
-    const filePath = path.join(dbAddress, "chatbots.json");
-    const data = await getData(filePath);
-    // Filter out empty/invalid objects and find by name
-    return data.find((chatbot) => chatbot && chatbot.name && chatbot.name === name);
+    const db = await getDb();
+    const chatbot = await db.collection('chatbots').findOne({ name });
+    if (!chatbot) return null;
+    // Convert MongoDB _id to id for frontend compatibility
+    return {
+      ...chatbot,
+      id: chatbot._id.toString(),
+      createdAt: chatbot.createdAt ? chatbot.createdAt.toISOString() : new Date().toISOString()
+    };
   } catch (error) {
-    console.warn("Failed to get chatbot by name, using memory storage:", error.message);
-    return findMemoryData('chatbots', (chatbot) => chatbot && chatbot.name === name);
+    console.error('Failed to get chatbot by name:', error.message);
+    return null;
   }
 };
 
-// Messages persistence
-// Schema: { id, chatbotName, userEmail, role: "user"|"bot", text, createdAt }
-const messagesFile = () => path.join(dbAddress, "messages.json");
+export const deleteChatbot = async ({ name, email }) => {
+  try {
+    const db = await getDb();
+    const result = await db.collection('chatbots').deleteOne({ name, creator: email });
+    
+    // Also delete all messages for this chatbot
+    await db.collection('messages').deleteMany({ chatbotName: name });
+    
+    return result.deletedCount > 0;
+  } catch (error) {
+    console.error('Failed to delete chatbot:', error.message);
+    throw error;
+  }
+};
 
+// Message operations
 export const getMessages = async ({ chatbotName, userEmail }) => {
   try {
-    const data = await getData(messagesFile());
-    const filtered = data.filter(
-      (m) => m.chatbotName === chatbotName && m.userEmail === userEmail
-    );
-    // Sort by createdAt (or id) to ensure chronological order
-    return filtered.sort((a, b) => {
-      // Use createdAt if available, otherwise fall back to id
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id || 0);
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id || 0);
-      return timeA - timeB; // Ascending order (oldest first)
-    });
+    const db = await getDb();
+    const messages = await db.collection('messages')
+      .find({ chatbotName, userEmail })
+      .sort({ createdAt: 1 })
+      .toArray();
+    // Convert MongoDB _id to id and ensure createdAt is ISO string
+    return messages.map(msg => ({
+      ...msg,
+      id: msg._id.toString(),
+      createdAt: msg.createdAt ? msg.createdAt.toISOString() : new Date().toISOString()
+    }));
   } catch (error) {
-    console.warn("Failed to get messages, using memory storage:", error.message);
-    const filtered = filterMemoryData('messages', 
-      (m) => m.chatbotName === chatbotName && m.userEmail === userEmail
-    );
-    // Sort memory data too
-    return filtered.sort((a, b) => {
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id || 0);
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id || 0);
-      return timeA - timeB;
-    });
+    console.error('Failed to get messages:', error.message);
+    return [];
   }
 };
 
 export const addMessage = async ({ chatbotName, userEmail, role, text }) => {
   try {
-    const filePath = messagesFile();
-    const data = await getData(filePath);
+    const db = await getDb();
     const entry = {
-      id: Date.now(),
       chatbotName,
       userEmail,
       role,
       text,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     };
-    data.push(entry);
-    await putData(filePath, data);
-    return entry;
-  } catch (error) {
-    console.warn("Message addition failed:", error.message);
-    // Return the message entry anyway for consistency
+    
+    const result = await db.collection('messages').insertOne(entry);
     return {
-      id: Date.now(),
-      chatbotName,
-      userEmail,
-      role,
-      text,
-      createdAt: new Date().toISOString(),
+      ...entry,
+      id: result.insertedId.toString(),
+      createdAt: entry.createdAt.toISOString()
     };
+  } catch (error) {
+    console.error('Message addition failed:', error.message);
+    throw error;
   }
+};
+
+// Legacy compatibility functions (for backward compatibility)
+export const getData = async (filePath) => {
+  // This is kept for backward compatibility but won't work with MongoDB
+  console.warn('getData called - this function is deprecated. Use MongoDB functions instead.');
+  return [];
+};
+
+export const postData = async (filePath, entry) => {
+  console.warn('postData called - this function is deprecated. Use MongoDB functions instead.');
+  return { success: true };
+};
+
+export const putData = async (filePath, data) => {
+  console.warn('putData called - this function is deprecated. Use MongoDB functions instead.');
+  return { success: true };
 };
