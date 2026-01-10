@@ -76,30 +76,56 @@ export default function Page() {
     setIsButtonDisabled(true)
     setIsTyping(true)
     
-    const userMessage = message
+    const userMessage = message.trim()
+    const token = getToken()
+    
+    // Add user message to UI immediately
     setChatHistory(prev => [...prev, { role: "You", text: userMessage }])
     setMessage("")
     
     try {
-      // Save user message to server
-      const token = getToken()
+      // Save user message to server (don't await to not block UI)
       if (token && botDetails.name) {
-        addMessageApi({ token, chatbotName: botDetails.name, role: "user", text: userMessage }).catch(() => {})
+        addMessageApi({ token, chatbotName: botDetails.name, role: "user", text: userMessage }).catch((err) => {
+          console.error("Failed to save user message:", err);
+        })
       }
+      
+      // Get conversation history for AI (current history before adding new message)
+      const conversationHistory = chatHistory.map(msg => ({
+        role: msg.role === "You" ? "user" : "assistant",
+        text: msg.text
+      }));
+      
+      // Call AI with conversation history and context
       const response = await askGemini({
         text: userMessage,
-        context: botDetails.context,
+        context: botDetails.context || "",
+        conversationHistory: conversationHistory
       })
+      
       const data = await response.json()
       const botMessage = data?.response?.candidates?.[0]?.content?.parts?.[0]?.text || ""
-      setChatHistory(prev => [...prev, { role: "Bot", text: botMessage || "Sorry, I couldn't generate a response." }])
+      
+      if (!botMessage) {
+        throw new Error("Empty response from AI");
+      }
+      
+      // Add bot response to UI
+      setChatHistory(prev => [...prev, { role: "Bot", text: botMessage }])
+      
       // Save bot message to server
-      if (token && botDetails.name) {
-        addMessageApi({ token, chatbotName: botDetails.name, role: "bot", text: botMessage }).catch(() => {})
+      if (token && botDetails.name && botMessage) {
+        addMessageApi({ token, chatbotName: botDetails.name, role: "bot", text: botMessage }).catch((err) => {
+          console.error("Failed to save bot message:", err);
+        })
       }
     } catch (error) {
       console.error("Error getting response:", error)
-      setChatHistory(prev => [...prev, { role: "Bot", text: "Sorry, I encountered an error. Please try again." }])
+      const errorMessage = error.message?.includes("context") 
+        ? "Sorry, I don't have that information in my knowledge base. Please check the context provided."
+        : "Sorry, I encountered an error. Please try again.";
+      setChatHistory(prev => [...prev, { role: "Bot", text: errorMessage }])
     } finally {
       setIsTyping(false)
       setTimeout(() => {
