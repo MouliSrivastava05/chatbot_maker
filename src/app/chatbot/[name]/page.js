@@ -79,6 +79,13 @@ export default function Page() {
     const userMessage = message.trim()
     const token = getToken()
     
+    // Get conversation history for AI BEFORE adding new message
+    // Convert to format expected by AI API (user/assistant instead of You/Bot)
+    const conversationHistory = chatHistory.map(msg => ({
+      role: msg.role === "You" ? "user" : "assistant",
+      text: msg.text
+    }));
+    
     // Add user message to UI immediately
     setChatHistory(prev => [...prev, { role: "You", text: userMessage }])
     setMessage("")
@@ -90,12 +97,6 @@ export default function Page() {
           console.error("Failed to save user message:", err);
         })
       }
-      
-      // Get conversation history for AI (current history before adding new message)
-      const conversationHistory = chatHistory.map(msg => ({
-        role: msg.role === "You" ? "user" : "assistant",
-        text: msg.text
-      }));
       
       // Call AI with conversation history and context
       const response = await askGemini({
