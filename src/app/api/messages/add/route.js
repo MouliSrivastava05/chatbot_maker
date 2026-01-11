@@ -20,7 +20,10 @@ export async function POST(req) {
       });
     }
 
-    const entry = await addMessage({ chatbotName, userEmail: email, role, text });
+    // Convert frontend role format ("You"/"Bot") to backend format ("user"/"bot")
+    const normalizedRole = role === "You" ? "user" : (role === "Bot" || role === "bot" ? "bot" : role);
+
+    const entry = await addMessage({ chatbotName, userEmail: email, role: normalizedRole, text });
     return new Response(JSON.stringify(entry), {
       status: 201,
       headers: { "Content-Type": "application/json" },
