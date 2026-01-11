@@ -16,7 +16,7 @@ const About = () => {
     <div className="about-container">
       <section className="about-hero">
         <div className="about-hero-content">
-          <h1>About ChatBot Maker</h1>
+          <h1>About NexCraft</h1>
           <p>Your AI-powered assistant platform for instant guidance and support</p>
         </div>
       </section>
@@ -25,7 +25,7 @@ const About = () => {
         <div className="about-mission-content">
           <h2>Our Mission</h2>
           <p>
-            ChatBot Maker was created to democratize access to guidance and support. We believe that everyone should have
+            NexCraft was created to democratize access to guidance and support. We believe that everyone should have
             instant access to the help they need, when they need it.
           </p>
           <p>
