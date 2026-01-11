@@ -42,10 +42,12 @@ const Signup = () => {
 
     try {
       // First sign up the user
+      console.log('Attempting signup for:', formData.email);
       await signup({
         email: formData.email,
         password: formData.password,
       });
+      console.log('Signup successful, attempting login...');
 
       // Then automatically log them in
       const loginResponse = await login({
@@ -60,7 +62,15 @@ const Signup = () => {
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (err) {
-      setError(err.message || 'Signup failed');
+      console.error('Signup/Login error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      });
+      // Display the actual error message from the API
+      const errorMessage = err.message || 'Signup failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

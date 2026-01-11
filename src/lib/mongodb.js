@@ -36,7 +36,18 @@ const getClientPromise = async () => {
     // Dynamic import to avoid build-time evaluation
     const { MongoClient } = await import('mongodb');
     
-    const options = {};
+    // Optimize connection options for serverless environments (Vercel)
+    const options = {
+      maxPoolSize: 10, // Maintain up to 10 socket connections
+      serverSelectionTimeoutMS: 5000, // How long to try selecting a server
+      socketTimeoutMS: 45000, // How long a send or receive on a socket can take before timeout
+      connectTimeoutMS: 10000, // How long to wait for initial connection
+      // For serverless, we want to close connections quickly
+      ...(process.env.NODE_ENV === 'production' && {
+        maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+      }),
+    };
+    
     let client;
 
     if (process.env.NODE_ENV === 'development') {
@@ -48,7 +59,8 @@ const getClientPromise = async () => {
       }
       clientPromise = global._mongoClientPromise;
     } else {
-      // In production mode, it's best to not use a global variable.
+      // In production mode (serverless), create a new connection each time
+      // Vercel serverless functions are stateless, so we can't rely on global state
       client = new MongoClient(uri, options);
       clientPromise = client.connect();
     }
