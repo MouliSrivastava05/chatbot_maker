@@ -124,7 +124,7 @@ export default function Page() {
     } catch (error) {
       console.error("Error getting response:", error)
       const errorMessage = error.message?.includes("context") 
-        ? "Sorry, I don't have that information in my knowledge base. Please check the context provided."
+        ? "I apologize, but I do not have that information as it is outside my provided context. I can only answer questions related to the information I was given."
         : "Sorry, I encountered an error. Please try again.";
       setChatHistory(prev => [...prev, { role: "Bot", text: errorMessage }])
     } finally {
