@@ -8,7 +8,9 @@ import { fetchMessages, addMessageApi } from "@/services/messages"
 import "./page.css"
 
 export default function Page() {
-  const { name: ChatBotName } = useParams()
+  const { name } = useParams()
+  const ChatBotName = name ? decodeURIComponent(name) : ""
+  
   const inputRef = useRef(null)
   const [message, setMessage] = useState("")
   const [chatHistory, setChatHistory] = useState([])
@@ -90,6 +92,9 @@ export default function Page() {
     setChatHistory(prev => [...prev, { role: "You", text: userMessage }])
     setMessage("")
     
+    let botMessage = "";
+    let addedPlaceholder = false;
+    
     try {
       // Save user message to server (don't await to not block UI)
       if (token && botDetails.name) {
@@ -100,33 +105,60 @@ export default function Page() {
       
       // Call AI with conversation history and context
       const response = await askGemini({
+        token: token,
         text: userMessage,
         context: botDetails.context || "",
         conversationHistory: conversationHistory
       })
       
-      const data = await response.json()
-      const botMessage = data?.response?.candidates?.[0]?.content?.parts?.[0]?.text || ""
+      setIsTyping(false)
       
-      if (!botMessage) {
-        throw new Error("Empty response from AI");
+      // Add empty placeholder for streaming response
+      setChatHistory(prev => {
+        addedPlaceholder = true;
+        return [...prev, { role: "Bot", text: "" }];
+      });
+      
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        botMessage += chunk;
+        
+        setChatHistory(prev => {
+          const updated = [...prev];
+          if (updated.length > 0) {
+            updated[updated.length - 1] = { role: "Bot", text: botMessage };
+          }
+          return updated;
+        });
       }
       
-      // Add bot response to UI
-      setChatHistory(prev => [...prev, { role: "Bot", text: botMessage }])
-      
-      // Save bot message to server
-      if (token && botDetails.name && botMessage) {
-        addMessageApi({ token, chatbotName: botDetails.name, role: "bot", text: botMessage }).catch((err) => {
+      // Save bot message to server after complete generation
+      if (token && botDetails.name && botMessage.trim()) {
+        addMessageApi({ token, chatbotName: botDetails.name, role: "bot", text: botMessage.trim() }).catch((err) => {
           console.error("Failed to save bot message:", err);
         })
       }
     } catch (error) {
-      console.error("Error getting response:", error)
-      const errorMessage = error.message?.includes("context") 
-        ? "I apologize, but I do not have that information as it is outside my provided context. I can only answer questions related to the information I was given."
-        : "Sorry, I encountered an error. Please try again.";
-      setChatHistory(prev => [...prev, { role: "Bot", text: errorMessage }])
+      console.warn("Error getting response:", error)
+      const errorMessage = "Sorry, I encountered an error. Please try again.";
+      
+      if (addedPlaceholder) {
+        setChatHistory(prev => {
+          const updated = [...prev];
+          if (updated.length > 0) {
+            updated[updated.length - 1] = { role: "Bot", text: botMessage + " \n\n[Error: " + errorMessage + "]" };
+          }
+          return updated;
+        });
+      } else {
+        setChatHistory(prev => [...prev, { role: "Bot", text: errorMessage }])
+      }
     } finally {
       setIsTyping(false)
       setTimeout(() => {

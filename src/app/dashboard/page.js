@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { AuthContext } from '@/context/auth'
 import './dashboard.css'
 import { createChatbot, getChatbotsByCreator } from '@/services/chatbot'
-import { getToken } from '@/helpers/auth'
+import { getToken, getEmailFromToken } from '@/helpers/auth'
 const Dashboard = () => {
     const router = useRouter()
     const { isLoggedIn, logout } = useContext(AuthContext)
@@ -14,6 +14,7 @@ const Dashboard = () => {
         name: '',
         context: ''
     })
+    const [deployBot, setDeployBot] = useState(null)
 
     // Load existing chatbots when component mounts
     useEffect(() => {
@@ -104,7 +105,7 @@ const Dashboard = () => {
                     id: Date.now(),
                     name: formData.name,
                     context: formData.context,
-                    creator: token.split('#@#')[1], // Extract email from token
+                    creator: getEmailFromToken() || '', // Extract email from token
                     createdAt: new Date().toISOString()
                 };
 
@@ -254,6 +255,12 @@ const Dashboard = () => {
                                             >
                                                 Delete
                                             </button>
+                                            <button
+                                                onClick={() => setDeployBot(chatbot)}
+                                                className="deployChatbotButton"
+                                            >
+                                                Deploy Widget
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -261,6 +268,29 @@ const Dashboard = () => {
                         )}
                     </div>
                 </div>
+                {deployBot && (
+                    <div className="deployModalOverlay" onClick={() => setDeployBot(null)}>
+                        <div className="deployModal" onClick={(e) => e.stopPropagation()}>
+                            <h2>Deploy {deployBot.name}</h2>
+                            <p>Copy and paste this script tag into the HTML of your website (e.g. before the closing <code>&lt;/body&gt;</code> tag):</p>
+                            
+                            <div className="codeSnippetContainer">
+                                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                                    <code>
+                                        {`<script\n  src="${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/widget.js"\n  data-bot-name="${deployBot.name}"\n  async>\n</script>`}
+                                    </code>
+                                </pre>
+                                <button onClick={() => {
+                                    const code = `<script src="${window.location.origin}/widget.js" data-bot-name="${deployBot.name}" async></script>`;
+                                    navigator.clipboard.writeText(code);
+                                    alert('Copied code to clipboard!');
+                                }}>Copy Code</button>
+                            </div>
+
+                            <button className="closeModalButton" onClick={() => setDeployBot(null)}>Close</button>
+                        </div>
+                    </div>
+                )}
             </div>
         )
     }

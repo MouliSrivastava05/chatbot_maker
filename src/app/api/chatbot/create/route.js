@@ -1,4 +1,4 @@
-import { createChatbot, verifyToken } from "../../utils";
+import { createChatbot, verifyToken, getEmailFromTokenServer } from "../../utils";
 
 export async function POST(req) {
   try {
@@ -22,7 +22,7 @@ export async function POST(req) {
       });
     }
 
-    const email = accessToken.split("#@#")[1];
+    const email = await getEmailFromTokenServer(accessToken);
     if (!email) {
       console.error("No email found in token");
       return new Response(JSON.stringify({ err: "Unauthorized: Invalid token format" }), {

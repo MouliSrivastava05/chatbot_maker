@@ -47,7 +47,7 @@ const Login = () => {
 
       // Handle error responses
       if (response.err) {
-        if (response.err === "User does not exists") {
+        if (response.err === "User does not exists" || response.err === "User does not exist") {
           setError(
             <div>
               Hey there! 👋<br />
@@ -94,26 +94,40 @@ const Login = () => {
       setSuccessMessage(
         <div className="auth-success">
           Welcome back! 🎉<br />
-          Redirecting you to your dashboard...
+          Redirecting...
         </div>
       );
 
       // Wait for 1.5 seconds to show the welcome message before redirecting
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push('/');
       }, 1500);
 
     } catch (err) {
-      console.error('Login error:', err);
-      setError(
-        <div>
-          Hey there! 👋<br />
-          We don't have an account with {email} yet. No worries though!<br />
-          <Link href="/auth/signup" className="auth-link">
-            Click here to create your account
-          </Link>
-        </div>
-      );
+      console.warn('Login error:', err);
+      
+      if (err.message === "User does not exist") {
+        setError(
+          <div>
+            Hey there! 👋<br />
+            We don&#39;t have an account with {email} yet. No worries though!<br />
+            <Link href="/auth/signup" className="auth-link">
+              Click here to create your account
+            </Link>
+          </div>
+        );
+      } else if (err.message === "Password does not match") {
+        setError(
+          <div>
+            Hmm, that password doesn&#39;t seem right for {email} 🤔<br />
+            <Link href="/auth/forgot-password" className="auth-link">
+              Forgot your password? Click here to reset it
+            </Link>
+          </div>
+        );
+      } else {
+        setError(err.message || 'An error occurred during login');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -132,14 +146,13 @@ const Login = () => {
 
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const email = user?.email;
-      
-      if (!email) {
-        throw new Error('No email found in Google account');
+      if (!user) {
+        throw new Error('Google sign-in returned no user');
       }
+      const idToken = await user.getIdToken();
 
       // Register/login user with our backend
-      const reg = await socialLogin({ email });
+      const reg = await socialLogin({ idToken });
       
       if (reg?.token) {
         localStorage.setItem("token", reg.token);
@@ -148,12 +161,12 @@ const Login = () => {
         setSuccessMessage(
           <div className="auth-success">
             Welcome! 🎉<br />
-            Redirecting you to your dashboard...
+            Redirecting...
           </div>
         );
 
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push('/');
         }, 1500);
       } else {
         throw new Error('Failed to create user session');

@@ -1,4 +1,4 @@
-import { deleteChatbot, verifyToken } from "../../utils";
+import { deleteChatbot, verifyToken, getEmailFromTokenServer } from "../../utils";
 
 export async function DELETE(req) {
   try {
@@ -20,7 +20,7 @@ export async function DELETE(req) {
       });
     }
 
-    const email = accessToken.split("#@#")[1];
+    const email = await getEmailFromTokenServer(accessToken);
     if (!email) {
       return new Response(JSON.stringify({ err: "Unauthorized: Invalid token format" }), {
         status: 401,

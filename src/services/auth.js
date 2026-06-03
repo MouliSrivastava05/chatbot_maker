@@ -60,12 +60,12 @@ export const login = async ({ email, password }) => {
   }
 };
 
-export const socialLogin = async ({ email }) => {
+export const socialLogin = async ({ idToken }) => {
   const response = await fetch("/api/auth/social-login", {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ idToken }),
     method: "POST",
   });
   const data = await response.json();
@@ -74,3 +74,4 @@ export const socialLogin = async ({ email }) => {
   }
   return data;
 };
+

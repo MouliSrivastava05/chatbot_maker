@@ -1,41 +1,50 @@
-import { verifyToken } from "../utils";
+import { getChatbotByName, getMessages, addMessage } from "../../utils";
 
 export async function POST(req) {
   try {
-    const authHeader = req.headers.get("authorization");
-    const accessToken = authHeader?.split(" ")[1];
+    const { chatbotName, text, sessionId } = await req.json();
 
-    if (!accessToken || !(await verifyToken(accessToken))) {
-      return new Response(JSON.stringify({ error: "Unauthorized: Invalid or missing token" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const { text, context, conversationHistory } = await req.json();
-
-    // Log context for debugging (remove sensitive data in production)
-    console.log("AI Request - Context length:", context ? context.length : 0);
-    console.log("AI Request - Has context:", !!context && context.trim().length > 0);
-    console.log("AI Request - Text:", text);
-
-    if (!text) {
-      return new Response(JSON.stringify({ error: "Missing 'text'" }), {
+    if (!chatbotName || !text || !sessionId) {
+      return new Response(JSON.stringify({ error: "Missing required fields: chatbotName, text, or sessionId" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
+    // 1. Fetch chatbot context
+    const chatbot = await getChatbotByName(chatbotName);
+    if (!chatbot) {
+      return new Response(JSON.stringify({ error: "Chatbot not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const context = chatbot.context || "";
+    const anonymousEmail = `anonymous_${sessionId}`;
+
+    // 2. Fetch conversation history
+    const serverMsgs = await getMessages({ chatbotName, userEmail: anonymousEmail });
+
+    // 3. Save the new user message to MongoDB (don't await to not block AI response time too much)
+    await addMessage({ 
+      chatbotName, 
+      userEmail: anonymousEmail, 
+      role: "user", 
+      text: text.trim() 
+    });
+
+    // 4. Configure Groq API key
     const apiKey = process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error("GROQ_API_KEY or GEMINI_API_KEY is not set in environment variables");
-      return new Response(JSON.stringify({ error: "Server misconfigured: API key missing. Please set GROQ_API_KEY in .env.local" }), {
+      console.error("GROQ_API_KEY is not set in environment variables");
+      return new Response(JSON.stringify({ error: "Server misconfigured: API key missing" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    // Build system prompt that restricts AI to context-only responses
+    // 5. Build system prompt using chatbot context
     let systemPrompt = "";
     if (context && context.trim().length > 0) {
       systemPrompt = `You are a specialized assistant that answers questions EXCLUSIVELY based on the context information provided below. 
@@ -56,30 +65,25 @@ REMEMBER: You can ONLY answer based on the context above. Any information not in
       systemPrompt = `You are a helpful assistant. However, no specific context has been provided. Please inform users that context is required to provide accurate answers based on their specific information.`;
     }
 
-    // Build messages array with conversation history
+    // 6. Build message array
     const messages = [];
-    
-    // Add system prompt
     messages.push({ role: "system", content: systemPrompt });
-    
-    // Add conversation history if provided (convert from frontend format to API format)
-    if (conversationHistory && Array.isArray(conversationHistory) && conversationHistory.length > 0) {
-      conversationHistory.forEach(msg => {
-        // Convert "You" to "user" and "Bot" to "assistant"
-        const role = msg.role === "You" ? "user" : (msg.role === "Bot" || msg.role === "bot" ? "assistant" : msg.role);
-        messages.push({ 
-          role: role, 
-          content: msg.text || msg.content || "" 
-        });
+
+    // Add conversation history
+    if (serverMsgs && Array.isArray(serverMsgs)) {
+      serverMsgs.forEach(msg => {
+        const role = msg.role === "user" ? "user" : "assistant";
+        messages.push({ role, content: msg.text || "" });
       });
     }
-    
-    // Add current user message with context reminder if context exists
-    const userMessage = context && context.trim().length > 0 
+
+    // Add current user message
+    const userMessage = context && context.trim().length > 0
       ? `Remember: Answer ONLY based on the provided context. Do not use general knowledge.\n\nQuestion: ${text}`
       : text;
     messages.push({ role: "user", content: userMessage });
 
+    // 7. Request Groq Chat Completion
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -89,35 +93,23 @@ REMEMBER: You can ONLY answer based on the context above. Any information not in
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: messages,
-        temperature: 0.1, // Very low temperature for strict adherence to context
-        top_p: 0.9, // Limit randomness
-        max_tokens: 500, // Limit response length to stay focused
+        temperature: 0.1,
+        top_p: 0.9,
+        max_tokens: 500,
         stream: true,
       }),
     });
 
     if (!groqResponse.ok) {
       const err = await groqResponse.text();
-      let errorDetails;
-      try {
-        errorDetails = JSON.parse(err);
-      } catch {
-        errorDetails = err;
-      }
-      console.error("Groq API error:", {
-        status: groqResponse.status,
-        statusText: groqResponse.statusText,
-        error: errorDetails
-      });
-      return new Response(JSON.stringify({ 
-        error: "AI request failed", 
-        details: errorDetails,
-        status: groqResponse.status
-      }), {
+      console.error("Groq API error in widget endpoint:", err);
+      return new Response(JSON.stringify({ error: "AI request failed", details: err }), {
         status: 502,
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    let accumulatedResponse = "";
 
     const responseStream = new ReadableStream({
       async start(controller) {
@@ -145,6 +137,7 @@ REMEMBER: You can ONLY answer based on the context above. Any information not in
                   const content = json.choices?.[0]?.delta?.content || "";
                   if (content) {
                     controller.enqueue(new TextEncoder().encode(content));
+                    accumulatedResponse += content;
                   }
                 } catch (err) {
                   console.error("Error parsing JSON chunk:", err);
@@ -152,8 +145,18 @@ REMEMBER: You can ONLY answer based on the context above. Any information not in
               }
             }
           }
+
+          // 8. Save bot response to MongoDB after consumption is complete
+          if (accumulatedResponse.trim()) {
+            await addMessage({
+              chatbotName,
+              userEmail: anonymousEmail,
+              role: "bot",
+              text: accumulatedResponse.trim()
+            });
+          }
         } catch (err) {
-          console.error("Error reading stream from Groq:", err);
+          console.error("Error reading stream from Groq in widget:", err);
           controller.error(err);
         } finally {
           controller.close();
@@ -166,15 +169,14 @@ REMEMBER: You can ONLY answer based on the context above. Any information not in
         "Content-Type": "text/event-stream; charset=utf-8",
         "Cache-Control": "no-cache, no-transform",
         "Connection": "keep-alive",
-      }
+        "Access-Control-Allow-Origin": "*", // Public route
+      },
     });
   } catch (error) {
-    console.error("Error in AI route:", error);
+    console.error("Error in widget chat API:", error);
     return new Response(JSON.stringify({ error: error.message || "Unknown error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
 }
-
-

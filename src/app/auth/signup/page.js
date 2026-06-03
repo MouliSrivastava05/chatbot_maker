@@ -59,11 +59,11 @@ const Signup = () => {
       localStorage.setItem("token", loginResponse.token);
       setIsLoggedIn(true);
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect to home
+      router.push('/');
     } catch (err) {
-      console.error('Signup/Login error:', err);
-      console.error('Error details:', {
+      console.warn('Signup/Login error:', err);
+      console.warn('Error details:', {
         message: err.message,
         stack: err.stack,
         name: err.name
@@ -88,21 +88,20 @@ const Signup = () => {
 
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const email = user?.email;
-      
-      if (!email) {
-        throw new Error('No email found in Google account');
+      if (!user) {
+        throw new Error('Google sign-in returned no user');
       }
+      const idToken = await user.getIdToken();
 
       // Register/login user with our backend
-      const reg = await socialLogin({ email });
+      const reg = await socialLogin({ idToken });
       
       if (reg?.token) {
         localStorage.setItem("token", reg.token);
         setIsLoggedIn(true);
         
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Redirect to home
+        router.push('/');
       } else {
         throw new Error('Failed to create user session');
       }

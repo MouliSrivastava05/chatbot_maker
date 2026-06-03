@@ -1,4 +1,4 @@
-import { addMessage, verifyToken } from "../../utils";
+import { addMessage, verifyToken, getEmailFromTokenServer } from "../../utils";
 
 export async function POST(req) {
   try {
@@ -11,7 +11,7 @@ export async function POST(req) {
       });
     }
 
-    const email = accessToken.split("#@#")[1];
+    const email = await getEmailFromTokenServer(accessToken);
     const { chatbotName, role, text } = await req.json();
     if (!chatbotName || !role || typeof text !== "string") {
       return new Response(JSON.stringify({ err: "Invalid payload" }), {

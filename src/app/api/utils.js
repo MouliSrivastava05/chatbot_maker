@@ -1,6 +1,11 @@
 import getClientPromise from '@/lib/mongodb';
+import * as jose from 'jose';
 
 const DB_NAME = 'chatbotmaker';
+
+const getJWTSecret = () => {
+  return new TextEncoder().encode(process.env.JWT_SECRET || 'a-very-long-fallback-jwt-secret-key-32-chars-at-least');
+};
 
 // Helper to get database
 const getDb = async () => {
@@ -73,35 +78,65 @@ export const createUser = async ({ email, password }) => {
 
 // Token operations
 export const verifyToken = async (token) => {
-  if (!token || typeof token !== 'string' || !token.includes('#@#')) {
+  if (!token || typeof token !== 'string') {
     return false;
   }
 
-  try {
-    const db = await getDb();
-    const tokenDoc = await db.collection('tokens').findOne({ token });
-    if (tokenDoc) {
-      return true;
-    }
-    
-    // Fallback: check token format (for backward compatibility)
-    // This allows tokens created before MongoDB migration to still work
-    const email = token.split('#@#')[1];
-    if (email && email.includes('@')) {
-      return true;
-    }
-    
-    return false;
-  } catch (error) {
-    console.warn('Token verification failed:', error.message);
-    // If MongoDB is not configured, fall back to format validation
-    if (error.message && error.message.includes('MONGODB_URI')) {
+  // Backward compatibility with legacy format
+  if (token.includes('#@#')) {
+    try {
+      const db = await getDb();
+      const tokenDoc = await db.collection('tokens').findOne({ token });
+      if (tokenDoc) {
+        return true;
+      }
+      
+      const email = token.split('#@#')[1];
+      return !!(email && email.includes('@'));
+    } catch (error) {
       const email = token.split('#@#')[1];
       return !!(email && email.includes('@'));
     }
-    // For other errors, still allow format-based validation as fallback
-    const email = token.split('#@#')[1];
-    return !!(email && email.includes('@'));
+  }
+
+  try {
+    const secret = getJWTSecret();
+    const { payload } = await jose.jwtVerify(token, secret);
+    if (!payload.email) return false;
+
+    // Check if the JWT has been blacklisted / logged out in the db
+    try {
+      const db = await getDb();
+      const tokenDoc = await db.collection('tokens').findOne({ token });
+      return !!tokenDoc;
+    } catch (dbError) {
+      // Fallback if DB is down or not configured
+    }
+
+    return true;
+  } catch (error) {
+    console.warn('Token verification failed:', error.message);
+    return false;
+  }
+};
+
+export const getEmailFromTokenServer = async (token) => {
+  if (!token || typeof token !== 'string') {
+    return null;
+  }
+
+  // Backward compatibility with legacy format
+  if (token.includes('#@#')) {
+    return token.split('#@#')[1] || null;
+  }
+
+  try {
+    const secret = getJWTSecret();
+    const { payload } = await jose.jwtVerify(token, secret);
+    return payload.email || null;
+  } catch (error) {
+    console.error('Failed to get email from token server:', error.message);
+    return null;
   }
 };
 
@@ -110,26 +145,31 @@ export const registerToken = async (email) => {
     throw new Error('Valid email is required to create token');
   }
 
-  const token = new Date().toISOString() + '#@#' + email;
-  
   try {
-    const db = await getDb();
-    await db.collection('tokens').insertOne({ 
-      token, 
-      email, 
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-    });
-  } catch (error) {
-    console.warn('Token registration failed:', error.message);
-    // If MongoDB is not configured, still return the token
-    // This allows the app to work in development without MongoDB
-    if (error.message && error.message.includes('MONGODB_URI')) {
-      console.warn('MongoDB not configured, token created but not persisted');
+    const secret = getJWTSecret();
+    const token = await new jose.SignJWT({ email })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('30d')
+      .sign(secret);
+
+    try {
+      const db = await getDb();
+      await db.collection('tokens').insertOne({ 
+        token, 
+        email, 
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+      });
+    } catch (error) {
+      console.warn('Token registration database insertion failed:', error.message);
     }
+    
+    return token;
+  } catch (jwtError) {
+    console.error('JWT creation failed, falling back to legacy format:', jwtError);
+    return new Date().toISOString() + '#@#' + email;
   }
-  
-  return token;
 };
 
 export const removeToken = async (token) => {
@@ -265,7 +305,10 @@ export const getChatbotByName = async (name) => {
 
   try {
     const db = await getDb();
-    const chatbot = await db.collection('chatbots').findOne({ name: name.trim() });
+    // Do a case-insensitive search
+    const chatbot = await db.collection('chatbots').findOne({ 
+      name: { $regex: new RegExp('^' + name.trim() + '$', 'i') } 
+    });
     
     if (!chatbot) return null;
     

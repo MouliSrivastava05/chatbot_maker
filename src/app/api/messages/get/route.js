@@ -1,4 +1,4 @@
-import { getMessages, verifyToken } from "../../utils";
+import { getMessages, verifyToken, getEmailFromTokenServer } from "../../utils";
 
 export async function GET(req) {
   try {
@@ -11,7 +11,7 @@ export async function GET(req) {
       });
     }
 
-    const email = accessToken.split("#@#")[1];
+    const email = await getEmailFromTokenServer(accessToken);
     const { searchParams } = new URL(req.url);
     const chatbotName = searchParams.get("chatbotName");
     if (!chatbotName) {

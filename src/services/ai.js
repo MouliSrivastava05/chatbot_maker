@@ -1,9 +1,14 @@
-export const askGemini = async ({ text, context, conversationHistory = [] }) => {
+export const askGemini = async ({ token, text, context, conversationHistory = [] }) => {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch("/api/ai", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: headers,
     body: JSON.stringify({ text, context, conversationHistory }),
   });
 
